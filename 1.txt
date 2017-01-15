@@ -1,0 +1,180 @@
+11. solutions
+	brute force, O(N^2)
+	O(N)
+		starts from the two end, move the lower one to the middle every time
+		prove: if the one we are looking for is on m, n
+			when we are on m, n-1
+			if height[m]>height[n-1], then we move n-1, exactly what we want
+			if height[m]<height[n-1], m n do not form the biggest area
+code
+    public int maxArea(int[] height) {
+        int l = 0;
+        int r = height.length - 1;
+        int max = 0;
+        while(l < r) {
+            int h = Math.min(height[l], height[r]);
+            max = Math.max(h * (r-l), max);
+            if(height[l] < height[r])
+                l++;
+            else
+                r--;
+        }
+        return max;
+    }
+
+12. code
+    public String intToRoman(int num) {
+        String[] M = {"", "M", "MM", "MMM"};
+        String[] C = {"", "C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM"};
+        String[] X = {"", "X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC"};
+        String[] I = {"", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX"};
+        return M[num/1000] + C[(num%1000)/100] + X[(num%100)/10] + I[num%10];
+    }
+
+13. code
+    public int romanToInt(String s) {
+        int sum = 0;
+        if(s.indexOf("IV") >= 0) sum -= 2;
+        if(s.indexOf("IX") >= 0) sum -= 2;
+        if(s.indexOf("XL") >= 0) sum -= 20;
+        if(s.indexOf("XC") >= 0) sum -= 20;
+        if(s.indexOf("CD") >= 0) sum -= 200;
+        if(s.indexOf("CM") >= 0) sum -= 200;
+        
+        for(int i=0; i<s.length(); i++) {
+            switch(s.charAt(i)) {
+                case 'M': sum += 1000; break;
+                case 'D': sum += 500; break;
+                case 'C': sum += 100; break;
+                case 'L': sum += 50; break;
+                case 'X': sum += 10; break;
+                case 'V': sum += 5; break;
+                case 'I': sum += 1; break;
+            }
+        }
+        return sum;
+    }
+
+14. code
+    public String longestCommonPrefix(String[] strs) {
+        if(strs == null || strs.length == 0) {		// there's no isEmpty() method of a array
+            return "";
+        }
+        for(int i=0; i<strs[0].length(); i++) {
+            char c = strs[0].charAt(i);
+            for(int j=1; j<strs.length; j++) {
+                if(strs[j].length() == i || strs[j].charAt(i) != c)	// check the length() to avoid outOfRange!
+                    return strs[0].substring(0, i);
+            }
+        }
+        return strs[0];
+    }
+
+15. general idea
+	sort the array first
+	difficulty: avoiding duplicate by skipping identical integers
+	O(N^2)
+code
+    public List<List<Integer>> threeSum(int[] nums) {
+        Arrays.sort(nums);		// remember this
+        List<List<Integer>> result = new LinkedList<>();
+        
+        for(int i=0; i<nums.length-2; i++) {
+            if(i==0 || i>0 && nums[i] != nums[i-1]) {		// skip identicals
+                int l = i+1, r = nums.length-1, sum = 0-nums[i];
+                while(l<r) {
+                    if(nums[l] + nums[r] == sum) {
+                        result.add(Arrays.asList(nums[i], nums[l], nums[r]));		// Arrays.asList
+                        while(l<r && nums[l+1] == nums[l]) l++;	// skip identicals
+                        while(l<r && nums[r-1] == nums[r]) r--;	// don't forget to check l<r first
+                        l++; r--;
+                    } else if(nums[l] + nums[r] < sum)
+                        l++;
+                    else
+                        r--;
+                }
+            }
+        }
+        return result;
+    }
+
+16. general idea
+	similar to 15, except that you don't have to worry about duplicate
+	the most important approach: if(sum<target)l++; else r--;
+		prove that the wanted l,r can be addressed:
+		assume that l is addressed first, that we're at l,r+1
+		since l,r is wanted, so sums[l]+sums[r+1] must be too larget, so we move to l,r and get the result
+code
+    public int threeSumClosest(int[] nums, int target) {
+        Arrays.sort(nums);
+        int diff = Integer.MAX_VALUE, result = 0;
+        for(int i=0; i<nums.length-2; i++) {
+            int l = i+1, r = nums.length-1;
+            while(l < r) {
+                int sum = nums[i] + nums[l] + nums[r];
+                if(sum == target)	// optional to end it in advance
+                    return sum;
+                if(Math.abs(sum - target) < diff) {
+                    diff = Math.abs(sum - target);
+                    result = sum;
+                }
+                if(sum < target)
+                    l++;
+                else
+                    r--;
+            }
+        }
+        return result;
+    }
+
+17. code
+    private char[][] dic = {		// note the array initialization
+            {}, {}, {'a', 'b', 'c'}, {'d', 'e', 'f'}, {'g', 'h', 'i'},
+            {'j', 'k', 'l'}, {'m', 'n', 'o'}, {'p', 'q', 'r', 's'}, 
+            {'t', 'u', 'v'}, {'w', 'x', 'y', 'z'}
+        };
+    public List<String> letterCombinations(String digits) {
+        List<String> result = new LinkedList<>();	// should return an empty list when appropriate
+        for(int i=0; i<digits.length(); i++)
+            result = append(result, Integer.valueOf(digits.substring(i, i+1)));	// Integer.valueOf('0') == 48
+        return result;
+    }
+    private List<String> append(List<String> src, int n) {
+        if(src.isEmpty())
+            src.add("");
+        List<String> result = new LinkedList<>();
+        for(String s: src) {
+            for(char c: dic[n])
+                result.add(s + c);
+        }
+        return result;
+    }
+
+18. general idea
+	based on 3sum
+code
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        Arrays.sort(nums);
+        List<List<Integer>> result = new LinkedList<>();
+        for(int i=0; i<nums.length-3; i++) {
+            if(i==0 || i>0 && nums[i] != nums[i-1]) {	// watch out! the same way to avoid duplication
+                for(int j=i+1; j<nums.length-2; j++) {
+                    if(j==i+1 || j>i+1 && nums[j] != nums[j-1]) {
+                        int l = j+1, r = nums.length-1, sum = target-nums[i]-nums[j];
+                        while(l < r) {
+                            if(nums[l] + nums[r] == sum) {
+                                result.add(Arrays.asList(nums[i], nums[j], nums[l], nums[r]));
+                                while(l<r && nums[l+1] == nums[l]) l++;
+                                while(l<r && nums[r-1] == nums[r]) r--;
+                                l++; r--;
+                            } else if(nums[l] + nums[r] > sum)
+                                r--;
+                            else
+                                l++;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }

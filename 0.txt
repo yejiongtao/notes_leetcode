@@ -5,6 +5,9 @@
 		then look in the table for complement of each value
 		one problem for this is
 			if nums has two identical values, it would be a pain to deal with them
+			(actually no pain at all)
+				if(map.containsKey(nums[i]) && map.get(nums[i]) != i)
+				// because if there're two identical keys, only the second one will be in the map
 	one-pass hash, O(N)
 		as below
 		need not worry about the identical issue, because you check before put the next pair into the map
@@ -13,7 +16,7 @@ code
         HashMap<Integer, Integer> map = new HashMap<>();
         for(int i=0; i<nums.length; i++) {
             int complement = target - nums[i];
-            if(map.containsKey(complement))	// check it use this, easier than using get() with !=null
+            if(map.containsKey(complement))	// check it using this, easier than using get() with !=null
                 return new int[]{map.get(complement), i};
             map.put(nums[i], i);
         }
@@ -56,8 +59,11 @@ code
 		for(int i=0, j=0; j<n; j++)
 		use a HashSet to keep the existed character, if s.charAt(j) is in the set, i++
 		O(N)
-	optimized sliding window
+		but there're some trick cases
+			what if there are more than one identical character in the window
+	optimized sliding window (you must understand this!)
 		we can slide i all the way to the duplicate character, instead of i++
+			in this way, we solve the tricky case described above
 		O(N)
 		see below
 code
@@ -69,6 +75,7 @@ code
         for(int i=0,j=0; j<n; j++) {
             if(map.containsKey(s.charAt(j)))
                 i = Math.max(map.get(s.charAt(j)) + 1, i);	// don’t forget max()! because we never clean up map
+			// thus, there may be some characters we already slided through but still in the map
 								// don’t forget to +1, because you start from the next one
             longest = Math.max(longest, j-i+1);
             map.put(s.charAt(j), j);				// put() cover the old value pair with a new one
@@ -93,11 +100,11 @@ code
         if(N1<N2)
             return findMedianSortedArrays(nums2, nums1);	// ensure N2 is smaller
         
-        if(N2 == 0)
+        if(N2 == 0)	// this case is included in the while, not necessary here
             return (nums1[(N1-1)/2] + nums1[N1/2])/2.0;
         
 	// below all positions are after adding N+1 slots
-        int l=0, r=N2*2;	// the initial range is the whole array
+        int l=0, r=N2*2;	// the initial range is the whole num2 array
         while(l <= r) {
             int mid2 = (l+r)/2;
             int mid1 = N1+N2-mid2;	// use some examples to calculate this
@@ -122,7 +129,11 @@ code
 		note that the length of the result can be either odd or even
 	O(N^2)
 	attention! string manipulation is slow, so avoid massive use if you can
+		not meaning that transform String into char[],
+		but, save the index of the beginning and ending of a String instead of a copy of the substring
 code
+    // or you can have some private members here to be shared variables across methods
+
     public String longestPalindrome(String s) {
         int n = s.length();
         int start = 0, end = 0;		// save the position instead of a substring to save time of string manipulation
@@ -159,7 +170,7 @@ code
         int len = s.length();
         StringBuffer[] sbs = new StringBuffer[numRows];
         for(int i=0; i<numRows; i++)
-            sbs[i] = new StringBuffer();
+            sbs[i] = new StringBuffer();	// note the use of StringBuffer
         
         int i=0;
         while(i<len) {
@@ -185,6 +196,7 @@ code
 code 1, string manipulation
     public int reverse(int x) {
         boolean isNegative = x<0;	// cannot use x=-x to get rid of the negative symbol, because if won’t work if x overflows
+		// when x==-2^32, -x overflows
         
         String original = Integer.toString(x);
         StringBuffer sb = new StringBuffer();
@@ -208,7 +220,19 @@ code 2, number manipulation
             int tail = x % 10;
             int newResult = result * 10 + tail;
             if((newResult - tail)/10 != result)		// take care of overflow!!
-                return 0;
+                return 0;		// watch out! this approach works for this 'reverse' situation
+					// but not for all cases when you want to know if it's overflow
+					// and it's pretty hard to prove this approach
+					
+					// e.g. when parsing a string into an integer
+					// if the integer is 2147483648, this approach won't work
+					// another incorrect approach is if(newResult * result < 0)
+					// cuz when an overflow number gets bigger, it gets negative then positive again
+					
+					// a more common way to tell if it's overflow is:
+					if(result > Integer.MAX_VALUE/10 || result < Integer.MIN_VALUE/10 ||
+			    			result == Integer.MAX_VALUE/10 && tail > Integer.MAX_VALUE%10 ||
+			   			result == Integer.MIN_VALUE/10 && tail < Integer.MIN_VALUE%10)
             result = newResult;
             x /= 10;
         }
@@ -245,4 +269,37 @@ code
             c = str.charAt(++i);
         }
         return isNegative ? -base : base;
+    }
+
+9. code
+    public boolean isPalindrome(int x) {
+        if(x < 0)			// watch out
+            return false;
+        
+        int l = (int) Math.log10(x);	// remember
+        int r = 0;
+        while(l > r) {
+            if(x/(int)Math.pow(10,l)%10 == x/(int)Math.pow(10,r)%10) {	// don't forget (int)
+                l--;
+                r++;
+            } else {
+                return false;
+            }
+        }
+        return true;
+    }
+
+10. solutions
+	recursion
+	DP (faster, but I don't understand)
+code 1
+    public boolean isMatch(String s, String p) {
+        if(p.isEmpty())
+            return s.isEmpty();
+            
+        if(p.length() > 1 && p.charAt(1) == '*')
+            return isMatch(s, p.substring(2)) || 		// a* matches nothing
+                !s.isEmpty() && (s.charAt(0) == p.charAt(0) || p.charAt(0) == '.') && isMatch(s.substring(1), p);
+        else
+            return !s.isEmpty() && (s.charAt(0) == p.charAt(0) || p.charAt(0) == '.') && isMatch(s.substring(1), p.substring(1));
     }
