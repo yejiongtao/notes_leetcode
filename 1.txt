@@ -178,3 +178,44 @@ code
         }
         return result;
     }
+
+19. solution
+	one pass
+code
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        ListNode r = head, l = head, ll = null;
+        for(int i=0; i<n-1; i++)	// the gap between l and r is n-1
+            r = r.next;
+        while(r.next != null) {
+            r = r.next;
+            ll = l;
+            l = l.next;
+        }
+        if(ll == null)		// when l is the first one
+            head = head.next;
+        else
+            ll.next = l.next;
+        
+        return head;
+    }
+
+20. code
+    public boolean isValid(String s) {
+        Stack<Character> stack = new Stack<>();		// remember the usage of Stack
+        for(int i=0; i<s.length(); i++) {
+            char c = s.charAt(i);
+            if(c == '(' || c == '[' || c == '{')
+                stack.push(c);
+            else {
+                if(stack.isEmpty())
+                    return false;
+                char cc = stack.pop();
+                if(cc == '(' && c == ')' || cc == '[' && c == ']' 
+                    || cc == '{' && c == '}')
+                    continue;
+                else
+                    return false;
+            }
+        }
+        return stack.isEmpty();		// 
+    }

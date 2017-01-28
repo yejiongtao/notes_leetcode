@@ -1,0 +1,314 @@
+21. code1, recursive
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        if(l1 == null) return l2;
+        if(l2 == null) return l1;
+        
+        if(l1.val < l2.val) {
+            l1.next = mergeTwoLists(l1.next, l2);
+            return l1;
+        } else {
+            l2.next = mergeTwoLists(l1, l2.next);
+            return l2;
+        }
+    }
+code2
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        ListNode dummy = new ListNode(0);	// list head, nice approach!
+        ListNode tail = dummy;
+        while(l1 != null && l2 != null) {
+            if(l1.val < l2.val) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+        tail.next = l1 == null ? l2 : l1;	// link the rest
+        return dummy.next;
+    }
+
+22. backtrace
+code
+    public List<String> generateParenthesis(int n) {
+        List<String> result = new LinkedList<>();
+        backtrace(result, "", 0, 0, n);
+        return result;
+    }
+    
+    private void backtrace(List<String> result, String s, int open, int close, int max) {
+        if(s.length() == max * 2) {
+            result.add(s);
+            return;
+        }
+        if(open < max)
+            backtrace(result, s+"(", open+1, close, max); // when it returns, s, open, close are still there
+							// so a potential ')' could be added
+        if(close < open)
+            backtrace(result, s+")", open, close+1, max);
+    }
+
+23. solutions
+	brute force
+		look for the minimum head of all lists via going through them every time
+		O(L*N), where L is the total length of all lists, N is the number of lists
+	priority queue (minimum heap)
+		I think time complexity is, O(L*logN)
+	recursion
+		time complexity is also O(L*logN)
+		prove:
+			let input be N lists with k nodes for each list
+			merge round 1: N/2 pairs with 2k time for merging each pair, in total kN
+			merge round 2: N/4 pairs with 4k time for merging each pair, in total kN
+			...
+			merge round logN: 1 pair with Nk time for merging each pair, in total kN
+			thus, T = kN * logN = L * logN, where L is the total nodes of all lists
+code, priority queue
+    public ListNode mergeKLists(ListNode[] lists) {
+        PriorityQueue<ListNode> queue = new PriorityQueue<>(new Comparator<ListNode>(){
+				// watch the use of anonymous class, and wildcast
+            @Override
+            public int compare(ListNode o1, ListNode o2) {
+                if(o1.val < o2.val)
+                    return -1;
+                else if(o1.val == o2.val)
+                    return 0;
+                else 
+                    return 1;
+            }
+        });
+        for(ListNode l: lists)		// O(NlogN)
+            if(l != null)	// watch out
+                queue.add(l);		// one addition is O(logN)
+                
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy;
+        while(!queue.isEmpty()) {	// O(LlogN)
+            tail.next = queue.poll();
+            tail = tail.next;
+            if(tail.next != null)
+                queue.add(tail.next);
+        }
+        return dummy.next;
+    }
+code, recursive
+    public ListNode mergeKLists(ListNode[] lists){
+        return partion(lists, 0, lists.length-1);
+    }
+    private ListNode partion(ListNode[] lists, int s, int e) {
+        if(s == e)
+            return lists[s];
+        if(s < e) {
+            int m = (s + e) / 2;	// to avoid integer overflow, use m= s + (e-s)/2;
+            ListNode l1 = partion(lists, s, m);	// attention, m cound == s, so you cannot use m-1 here
+            ListNode l2 = partion(lists, m+1, e);
+            return merge(l1, l2);
+        } else
+            return null;
+    }
+    private ListNode merge(ListNode l1, ListNode l2) {	// from merge two sorted lists
+        ListNode dummy = new ListNode(0), tail = dummy;
+        while(l1 != null && l2 != null) {
+            if(l1.val < l2.val) {
+                tail.next = l1;
+                l1 = l1.next;
+            } else {
+                tail.next = l2;
+                l2 = l2.next;
+            }
+            tail = tail.next;
+        }
+        tail.next = l1 == null ? l2 : l1;
+        return dummy.next;
+    }
+
+24. code
+    public ListNode swapPairs(ListNode head) {
+        ListNode dummy = new ListNode(0), tail = dummy;
+        tail.next = head;
+
+        while(tail.next != null && tail.next.next != null) {
+            ListNode l1 = tail.next, l2 = l1.next;
+            tail.next = l2;
+            l1.next = l2.next;
+            l2.next = l1;
+            tail = l1;
+        }
+        return dummy.next;
+    }
+
+25. general idea
+	a1,a2,a3,...,ak, put a1 after ak, then a2 after ak...
+code
+    public ListNode reverseKGroup(ListNode head, int k) {
+        ListNode dummy = new ListNode(0);
+        ListNode tail = dummy, prev = dummy, temp;	// prev points to the end of last k-group
+        dummy.next = head;
+    
+        while(true) {
+            for(int i=0; i<k && tail != null; i++)	// let tail point to the end of this k-group
+                tail = tail.next;
+            if(tail == null)
+                break;
+
+            ListNode nextPrev = prev.next;	// the beginning of this k-group will soon be the end of this k-group
+            while(prev.next != tail) {
+                temp = prev.next;
+                prev.next = temp.next;
+                temp.next = tail.next;
+                tail.next = temp;
+            }
+            tail = nextPrev;
+            prev = nextPrev;
+        }
+        return dummy.next;
+    }
+
+26. code
+    public int removeDuplicates(int[] nums) {
+        if(nums == null)
+            return 0;
+        int id = 0;
+        for(int i=0; i<nums.length; i++)
+            if(i==0 || i>0 && nums[i-1] != nums[i])
+                nums[id++] = nums[i];	// put in the same array
+        return id;
+    }
+
+27. similar to 26
+code
+    public int removeElement(int[] nums, int val) {
+        int n = 0;
+        for(int i=0; i<nums.length; i++)
+            if(nums[i] != val)
+                nums[n++] = nums[i];
+        return n;
+    }
+
+28. it's to implement indexOf
+code
+    public int strStr(String haystack, String needle) {
+        for(int i=0; i <= haystack.length() - needle.length(); i++) {
+            boolean match = true;
+            for(int j=0; j < needle.length(); j++) {
+                if(needle.charAt(j) != haystack.charAt(i+j)) {
+                    match = false;
+                    break;
+                }
+            }
+            if(match)
+                return i;
+        }
+        return -1;
+    }
+
+29. general idea
+	you can set up a loop to see how many divisors can be subtracted from dividend
+	but it's slow, so we multiply dividend by 2 every time to reduce the time to log
+		(use bit shifting to implement multiplication)
+	use long instead of int to avoid some overflow issues
+code
+    public int divide(int dividend, int divisor) {
+        boolean sign = dividend>0 && divisor>0 || dividend<0 && divisor<0;
+        long ans = 0;		// ans may also > Integer.MAX_VALUE
+        
+        long dend = Math.abs((long) dividend);	// use long to avoid overflow
+        long sor = Math.abs((long) divisor);
+        while(dend >= sor) {
+            long s = sor, a = 1;
+            while((s<<1) <= dend) {
+                s <<= 1;
+                a <<= 1;
+            }
+            ans += a;
+            dend -= s;
+        }
+        if(ans > Integer.MAX_VALUE && sign)	// deal with overflow of ans
+            ans = Integer.MAX_VALUE;
+        return sign ? (int)ans : (int)-ans;	// when ans==Integer.MAX_VALUE+1, -ans==Intger.MIN_VALUE is exactly what we want
+    }
+addtional tips
+	(-1) << 1 == -2
+	(-2) << 1 == -4
+
+30. solutions
+	1. put words in a HashMap, then go through s to find matches
+		I think, O((M-N)*n), where M=s.length(), n=words.length, N=n * words[0].length()
+	2. sliding window
+		a window always contain a valid substring
+		you move the right side to expand the window
+			when a window is not valid any more, slide the left side until it fits
+		O(l * 2M/l * l) = O(lM), where l=words[0].length(), M=s.length()
+code 1
+    public List<Integer> findSubstring(String s, String[] words) {
+        List<Integer> result = new LinkedList<>();
+        if(s == null || words == null || words.length == 0)
+            return result;
+        Map<String, Integer> dic = new HashMap<>();	// words may have duplicate
+        for(String w: words)
+            dic.put(w, dic.containsKey(w) ? dic.get(w)+1 : 1);
+        int len = words[0].length();
+        
+        for(int i=0; i <= s.length() - words.length * len; i++) {
+            Map<String, Integer> copy = new HashMap<>(dic);
+            for(int j=0; j<words.length; j++) {
+                String w = s.substring(i + j*len, i + j*len + len);
+                if(copy.containsKey(w)) {
+                    if(copy.get(w) > 1) copy.put(w, copy.get(w) -1);
+                    else copy.remove(w);
+                } else 
+                    break;
+                if(copy.isEmpty())
+                    result.add(i);
+            }
+        }
+        return result;
+    }
+code 2
+    public List<Integer> findSubstring(String s, String[] words) {
+        List<Integer> result = new LinkedList<>();
+        if(s == null || words == null || words.length == 0)	// so that s.length(), words[0].length() are valid
+            return result;
+        Map<String, Integer> dic = new HashMap<>();
+        for(String w: words)
+            dic.put(w, dic.containsKey(w) ? dic.get(w)+1 : 1);
+        int len = words[0].length();
+        
+        for(int i=0; i<len; i++) {				// O(l)
+            Map<String, Integer> copy = new HashMap<>(dic);
+            int left = i;		// left side of the window
+            for(int j=i; j <= s.length() - len; j+=len) {	// O(2M/l), cuz every substring is visited at most twice
+								// one by the left side, another by the right
+                String str = s.substring(j, j+len);	// creating substrings also costs time, but probably will be optimized
+                if(copy.containsKey(str)) {			// O(l), calculating hash costs O(l)
+                    if(copy.get(str) == 1)
+                        copy.remove(str);
+                    else
+                        copy.put(str, copy.get(str) -1);
+                    if(copy.isEmpty()) {	// get one result, and slide left side by one substring
+                        result.add(left);
+                        String str1 = s.substring(left, left + len);
+                        copy.put(str1, 1);
+                        left += len;
+                    }
+                } else {
+                    boolean isValid = false;
+                    while(left < j) {
+                        String str1 = s.substring(left, left + len);
+                        if(str1.equals(str)) {	// in this situation, no need to put it back
+                            left += len;
+                            isValid = true;
+                            break;
+                        }
+                        copy.put(str1, copy.containsKey(str1) ? copy.get(str1)+1 : 1);
+                        left += len;
+                    }
+                    if(!isValid)
+                        left += len;
+                }
+            }
+        }
+        return result;
+    }
+

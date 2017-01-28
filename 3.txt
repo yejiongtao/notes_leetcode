@@ -1,0 +1,254 @@
+31. the algorithm taught in Discrete maths class
+	1. Find the largest index k such that nums[k] < nums[k + 1]
+		If no such index exists, just sort it to ascending order
+	2. Find the largest index l greater than k such that nums[k] < nums[l]
+	3. Swap the value of nums[k] with that of nums[l]
+	4. sort the sequence from nums[k + 1] up to and final element
+code 
+    public void nextPermutation(int[] nums) {
+        if(nums == null || nums.length == 0)
+            return;
+        for(int i=nums.length-2; i>=0; i--) {
+            if(nums[i] < nums[i+1]) {
+                int min = Integer.MAX_VALUE, idx = 0;
+                for(int j=i+1; j<nums.length; j++) {
+                    if(nums[j] < min && nums[j] > nums[i]) {
+                        min = nums[j];
+                        idx = j;
+                    }
+                }
+                
+                int temp = nums[i];
+                nums[i] = nums[idx];
+                nums[idx] = temp;
+                Arrays.sort(nums, i+1, nums.length);
+                return;
+            }
+        }
+        Arrays.sort(nums);
+    }
+
+32. general idea
+	using stack, O(n)
+		find indices of those cannot be matched
+		calculate the distance between those indices to find the largest
+code
+    public int longestValidParentheses(String s) {
+        Stack<Integer> stack = new Stack<>();
+        s += "x";			// so that it will go another round after done with the input string itself
+        int len = s.length(), max = 0;
+        for(int i=0; i < len; i++) {
+            if(s.charAt(i) == ')' && !stack.isEmpty() && s.charAt(stack.peek()) == '(')
+                stack.pop();
+            else {
+                if(stack.isEmpty())
+                    max = Math.max(max, i);
+                else
+                    max = Math.max(max, i - stack.peek() - 1);
+                stack.push(i);		// actually, push() is the same as add()
+            }
+        }
+        return max;
+    }
+
+33. solution
+	O(logN), based on binary search
+	find the smallest element first
+	then perform a binary search on one side of the smallest element
+code
+    public int search(int[] nums, int target) {
+        int len = nums.length;
+        int l = 0, r = len - 1;
+        while(l < r) {
+            int mid = (l + r) / 2;
+            if(nums[mid] > nums[r]) l = mid + 1;
+            else r = mid;       	// we don't +1 cuz mid may be the smallest number we look for
+        }
+        int smallest = l;		// l == r
+        if(target > nums[len-1]) {	// cannot use target>=nums[0], considering the case nums[0]==smallest==target
+            l = 0;
+            r = smallest - 1;
+        } else {
+            l = smallest;
+            r = len - 1;
+        }
+        while(l <= r) {			// <=
+            int mid = (l + r) / 2;
+            if(nums[mid] == target) return mid;
+            if(nums[mid] > target) r = mid - 1;
+            else l = mid + 1;		// +1
+        }
+        return -1;
+    }
+
+34. code
+    public int[] searchRange(int[] nums, int target) {
+        int l = 0, r = nums.length - 1, i = -1;		// two binary search for starting and ending index
+        while(l <= r) {
+            int mid = (l + r) / 2;
+            if(nums[mid] == target) i = mid;
+            if(nums[mid] >= target) r = mid - 1;	// when ==, we go ahead to left
+            else l = mid + 1;
+        }
+        l = 0; r = nums.length - 1;
+        int j = -1;
+        while(l <= r) {
+            int mid = (l + r) / 2;
+            if(nums[mid] == target) j = mid;
+            if(nums[mid] <= target) l = mid + 1;	// when ==, we go ahead to right
+            else r = mid - 1;
+        }
+        return new int[]{i, j};
+    }
+
+35. code
+    public int searchInsert(int[] nums, int target) {
+        int l = 0, r = nums.length - 1;
+        while(l <= r) {		// attention, <= in binary search
+            int mid = (l + r) / 2;
+            if(nums[mid] == target)
+                return mid;
+            if(nums[mid] < target)
+                l = mid + 1;
+            else
+                r = mid - 1;
+        }
+        return l;	// l! not r!
+    }
+
+36. code
+public boolean isValidSudoku(char[][] board) {
+    for(int i = 0; i < 9; i++){
+        Set<Character> rows = new HashSet<Character>();
+        Set<Character> columns = new HashSet<Character>();
+        Set<Character> cube = new HashSet<Character>();
+        for (int j = 0; j < 9; j++){
+            if(board[i][j]!='.' && !rows.add(board[i][j]))	// Set#add returns false when already exist
+                return false;
+            if(board[j][i]!='.' && !columns.add(board[j][i]))
+                return false;
+            int x = i%3*3, y = i/3*3, dx = j%3, dy = j/3;	// nicely done
+            if(board[x + dx][y + dy]!='.' && !cube.add(board[x + dx][y + dy]))
+                return false;
+        }
+    }
+    return true;
+}
+
+37. backtrace
+code
+    public boolean solve(char[][] board){
+        for(int i = 0; i < board.length; i++){	// you can provide a current index to avoid traversing every time
+            for(int j = 0; j < board[0].length; j++){	// but since the data size is small, we choose a convenient way
+                if(board[i][j] == '.'){
+                    for(char c = '1'; c <= '9'; c++){
+                        if(isValid(board, i, j, c)){
+                            board[i][j] = c;
+                            
+                            if(solve(board))
+                                return true;
+                            else
+                                board[i][j] = '.'; 	//Otherwise go back!
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
+    private boolean isValid(char[][] board, int row, int col, char c){
+        for(int i = 0; i < 9; i++) {
+            if(board[i][col] == c) return false;
+            if( board[row][i] == c) return false;
+            if(board[3 * (row / 3) + i / 3][3 * (col / 3) + i % 3] == c) return false;
+        }
+        return true;
+    }
+
+38. code
+    public String countAndSay(int n) {
+        String s = "1";
+        for(int i=1; i<n; i++) {
+            StringBuffer sb = new StringBuffer();
+            char c = ' ';
+            int count = 0;
+            for(int j=0; j<s.length(); j++) {
+                if(s.charAt(j) == c)
+                    count++;
+                else {
+                    if(count != 0)
+                        sb.append(Integer.toString(count) + c);		// ""+' ' is legal
+                    c = s.charAt(j);
+                    count = 1;
+                }
+            }
+            if(count != 0)
+                sb.append(Integer.toString(count) + c);
+            s = sb.toString();
+        }
+        return s;
+    }
+
+39. backtracking
+	note that candidates is an array without duplicates
+code
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        List<List<Integer>> result = new LinkedList<>();
+        List<Integer> combination = new LinkedList<>();
+        getCombination(result, combination, candidates, 0, target);
+        return result;
+    }
+    private void getCombination(List<List<Integer>> result, List<Integer> combination, int[] nums, int start, int target) {
+        if(target == 0) {
+            result.add(new ArrayList<>(combination));
+            return;
+        }
+        for(int i=start; i < nums.length && target >= nums[i]; i++) {
+            combination.add(nums[i]);
+            getCombination(result, combination, nums, i, target - nums[i]);	// i instead of i+1
+            combination.remove(combination.size() - 1);
+        }
+    }
+
+40. backtracking
+	the difficulty lays on how to avoid duplicate results
+		e.g. 1a, 1b, 2
+		combination (1b,2) is not allowed if we have (1a,2) already
+		but meanwhile, (1a,1b,2) should be allowed
+note: difference between backtracking and depth first search
+	Depth-First search is a specific form of backtracking related to searching tree structures
+	Backtracking is a more general purpose algorithm
+		can be used on any type of structure where portions of the domain can be eliminated
+code
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        List<List<Integer>> result = new LinkedList<>();
+        List<Integer> combination = new LinkedList<>();
+        backtrack(result, combination, candidates, 0, target);
+        return result;
+    }
+    private void backtrack(List<List<Integer>> result, List<Integer> com, int[] nums, int start, int target) {
+        if(target == 0) {
+            result.add(new ArrayList<>(com));		// watch out
+            return;
+        }
+        for(int i = start; i < nums.length && target >= nums[i]; i++) {
+            if(i != start && nums[i] == nums[i-1])	// here, to avoid duplicates
+                continue;
+            com.add(nums[i]);
+            backtrack(result, com, nums, i+1, target-nums[i]);	// i+1 instead of i
+            com.remove(com.size() - 1);		// eliminating, which is the key point of backtracking
+			// remove(int index)
+			// remove(Integer object)
+        }
+    }
+time complexity (worst-case)
+	not sure if it's correct
+	T(N) = T(N-1) + T(N-2) + ... + T(0), T(0) = 1
+	so, T(N) = 2T(N-1), T(0) = 1
+	so, T(N) = O(2^N)
+
+216. Combination Sum III
