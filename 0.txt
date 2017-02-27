@@ -28,18 +28,20 @@ code
 code
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
         ListNode result = l1;
-        ListNode last = null;	// have to keep the last one, so that you can link a new node to the list
-        
+        ListNode tail = l1;	// have to keep the last one, so that you can link a new node to the list
+
         while(l2 != null) {
             if(l1 == null) {
                 l1 = new ListNode(0);
-                if(last != null)
-                    last.next = l1;	// don’t forget to link it to the list
+                if(tail != null)
+                    tail.next = l1;	// don’t forget to link it to the list
             }
             int thisVal = l2.val + l1.val;
             l1.val = thisVal % 10;
             
-            last = l1;
+            tail = l1;
+            if(result == null) 		// if l1 is originally null
+                result = tail;
             l1 = l1.next;
             l2 = l2.next;
             
@@ -70,15 +72,14 @@ code
     public int lengthOfLongestSubstring(String s) {
         int longest = 0;
         int n = s.length();
-        HashMap<Character, Integer> map = new HashMap<>();
+        Map<Character, Integer> map = new HashMap<>();
         
         for(int i=0,j=0; j<n; j++) {
-            if(map.containsKey(s.charAt(j)))
-                i = Math.max(map.get(s.charAt(j)) + 1, i);	// don’t forget max()! because we never clean up map
-			// thus, there may be some characters we already slided through but still in the map
-								// don’t forget to +1, because you start from the next one
+            char c = s.charAt(j);
+            if(map.containsKey(c) && map.get(c) >= i)	// cuz we never clean up the map, so map.get(c)>=i is necessary
+                i = map.get(c) + 1;
             longest = Math.max(longest, j-i+1);
-            map.put(s.charAt(j), j);				// put() cover the old value pair with a new one
+            map.put(c, j);				// put() cover the old value pair with a new one
         }
         
         return longest;
@@ -103,9 +104,9 @@ code
         if(N2 == 0)	// this case is included in the while, not necessary here
             return (nums1[(N1-1)/2] + nums1[N1/2])/2.0;
         
-	// below all positions are after adding N+1 slots
+	// below, all positions are after adding N+1 slots
         int l=0, r=N2*2;	// the initial range is the whole num2 array
-        while(l <= r) {
+        while(l <= r) {		// be careful to choose from < and <=
             int mid2 = (l+r)/2;
             int mid1 = N1+N2-mid2;	// use some examples to calculate this
             
@@ -133,6 +134,7 @@ code
 		but, save the index of the beginning and ending of a String instead of a copy of the substring
 code
     // or you can have some private members here to be shared variables across methods
+    // e.g. starting, ending, longest
 
     public String longestPalindrome(String s) {
         int n = s.length();
@@ -168,19 +170,19 @@ code
 code
     public String convert(String s, int numRows) {
         int len = s.length();
-        StringBuffer[] sbs = new StringBuffer[numRows];
+        StringBuffer[] sbs = new StringBuffer[numRows];		// note the initialization of array
         for(int i=0; i<numRows; i++)
             sbs[i] = new StringBuffer();	// note the use of StringBuffer
         
         int i=0;
         while(i<len) {
-            for(int idx=0; idx<numRows && i<len; idx++, i++)	// going down
+            for(int idx=0; idx<numRows && i<len; idx++, i++)	// going down, so clever!
                 sbs[idx].append(s.charAt(i));
             for(int idx=numRows-2; idx>0 && i<len; idx--, i++)	// going up
                 sbs[idx].append(s.charAt(i));
         }
         
-        for(int j=1; j<numRows; j++)
+        for(int j=1; j<numRows; j++)		// j is already defined
             sbs[0].append(sbs[j]);		// you can append a StringBuffer
         
         return sbs[0].toString();
@@ -217,7 +219,7 @@ code 2, number manipulation
         int result = 0;
         
         while(x != 0) {
-            int tail = x % 10;
+            int tail = x % 10;		// -11 % 10 = -1
             int newResult = result * 10 + tail;
             if((newResult - tail)/10 != result)		// take care of overflow!!
                 return 0;		// watch out! this approach works for this 'reverse' situation
@@ -248,7 +250,7 @@ code 2, number manipulation
 	the difficulty lays on dealing overflows
 code
     public int myAtoi(String str) {
-        str = str.trim();
+        str = str.trim();	// trim()
         int base = 0, i = 0;
         boolean isNegative = false;
         
@@ -279,7 +281,7 @@ code
         int l = (int) Math.log10(x);	// remember
         int r = 0;
         while(l > r) {
-            if(x/(int)Math.pow(10,l)%10 == x/(int)Math.pow(10,r)%10) {	// don't forget (int)
+            if(x/(int)Math.pow(10,l) % 10 == x/(int)Math.pow(10,r) % 10) {	// don't forget (int)
                 l--;
                 r++;
             } else {
