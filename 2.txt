@@ -37,11 +37,13 @@ code
         return result;
     }
     
+	// open is number of '(' in s, close is number of ')' in s
     private void backtrace(List<String> result, String s, int open, int close, int max) {
         if(s.length() == max * 2) {
             result.add(s);
             return;
         }
+	// 下面两个相当于两个分支，当然是条件满足的时候才合法的分支
         if(open < max)
             backtrace(result, s+"(", open+1, close, max); // when it returns, s, open, close are still there
 							// so a potential ')' could be added
@@ -129,7 +131,7 @@ code, recursive
         tail.next = head;
 
         while(tail.next != null && tail.next.next != null) {
-            ListNode l1 = tail.next, l2 = l1.next;
+            ListNode l1 = tail.next, l2 = l1.next;	// constant space used? probably
             tail.next = l2;
             l1.next = l2.next;
             l2.next = l1;
@@ -143,7 +145,7 @@ code, recursive
 code
     public ListNode reverseKGroup(ListNode head, int k) {
         ListNode dummy = new ListNode(0);
-        ListNode tail = dummy, prev = dummy, temp;	// prev points to the end of last k-group
+        ListNode tail = dummy, prev = dummy;	// prev points to the end of last k-group
         dummy.next = head;
     
         while(true) {
@@ -154,7 +156,7 @@ code
 
             ListNode nextPrev = prev.next;	// the beginning of this k-group will soon be the end of this k-group
             while(prev.next != tail) {
-                temp = prev.next;
+                ListNode temp = prev.next;
                 prev.next = temp.next;
                 temp.next = tail.next;
                 tail.next = temp;
@@ -190,7 +192,7 @@ code
 code
     public int strStr(String haystack, String needle) {
         for(int i=0; i <= haystack.length() - needle.length(); i++) {
-            boolean match = true;
+            boolean match = true;		// if needle=="", 1 should be returned
             for(int j=0; j < needle.length(); j++) {
                 if(needle.charAt(j) != haystack.charAt(i+j)) {
                     match = false;
@@ -208,6 +210,7 @@ code
 	but it's slow, so we multiply dividend by 2 every time to reduce the time to log
 		(use bit shifting to implement multiplication)
 	use long instead of int to avoid some overflow issues
+		when dividend or divisor is Integer.MIN_VALUE, then abs() will overflow
 code
     public int divide(int dividend, int divisor) {
         boolean sign = dividend>0 && divisor>0 || dividend<0 && divisor<0;
@@ -224,9 +227,9 @@ code
             ans += a;
             dend -= s;
         }
-        if(ans > Integer.MAX_VALUE && sign)	// deal with overflow of ans
-            ans = Integer.MAX_VALUE;
-        return sign ? (int)ans : (int)-ans;	// when ans==Integer.MAX_VALUE+1, -ans==Intger.MIN_VALUE is exactly what we want
+        if(ans > Integer.MAX_VALUE)	// deal with overflow of ans
+            return isN ? Integer.MIN_VALUE : Integer.MAX_VALUE;
+        return sign ? (int)ans : (int)-ans;
     }
 addtional tips
 	(-1) << 1 == -2
@@ -293,7 +296,7 @@ code 2
                         left += len;
                     }
                 } else {
-                    boolean isValid = false;
+                    boolean isValid = false;	// str is valid
                     while(left < j) {
                         String str1 = s.substring(left, left + len);
                         if(str1.equals(str)) {	// in this situation, no need to put it back

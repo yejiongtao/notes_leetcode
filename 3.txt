@@ -12,7 +12,7 @@ code
             if(nums[i] < nums[i+1]) {
                 int min = Integer.MAX_VALUE, idx = 0;
                 for(int j=i+1; j<nums.length; j++) {
-                    if(nums[j] < min && nums[j] > nums[i]) {
+                    if(nums[j] < min && nums[j] > nums[i]) {	// there must be at least 1 element, namely i+1
                         min = nums[j];
                         idx = j;
                     }
@@ -21,7 +21,7 @@ code
                 int temp = nums[i];
                 nums[i] = nums[idx];
                 nums[idx] = temp;
-                Arrays.sort(nums, i+1, nums.length);
+                Arrays.sort(nums, i+1, nums.length);	// sort(int[], int begin, int end)
                 return;
             }
         }
@@ -35,17 +35,13 @@ code
 code
     public int longestValidParentheses(String s) {
         Stack<Integer> stack = new Stack<>();
-        s += "x";			// so that it will go another round after done with the input string itself
         int len = s.length(), max = 0;
         for(int i=0; i < len; i++) {
-            if(s.charAt(i) == ')' && !stack.isEmpty() && s.charAt(stack.peek()) == '(')
+            if(s.charAt(i) == ')' && !stack.isEmpty() && s.charAt(stack.peek()) == '(') {	// check isEmpty()!!
                 stack.pop();
-            else {
-                if(stack.isEmpty())
-                    max = Math.max(max, i);
-                else
-                    max = Math.max(max, i - stack.peek() - 1);
-                stack.push(i);		// actually, push() is the same as add()
+                max = Math.max(max, i - (stack.isEmpty() ? -1 : stack.peek()));		// note the -1
+            } else {
+                stack.push(i);
             }
         }
         return max;
@@ -58,6 +54,8 @@ code
 code
     public int search(int[] nums, int target) {
         int len = nums.length;
+        if(len == 0) return -1;		// careful, cuz nums[len-1] is used below
+
         int l = 0, r = len - 1;
         while(l < r) {
             int mid = (l + r) / 2;
@@ -114,6 +112,7 @@ code
                 r = mid - 1;
         }
         return l;	// l! not r!
+		// think about when l==r && nums[mid]!=target, what happens next
     }
 
 36. code

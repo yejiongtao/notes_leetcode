@@ -1,4 +1,4 @@
-1. solutions
+1. solutions (the input is not sorted)
 	brute force, O(N^2)
 	two-pass hash, O(N)
 		create a hash table of <value, index> first
@@ -25,6 +25,9 @@ code
 
 2. general idea
 	use one list as the result, so that you only worry about l2!=null
+		somewhat not straight-forward enough
+	code 2
+		straight-forward
 code
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
         ListNode result = l1;
@@ -52,6 +55,24 @@ code
                     l2.val++;
         }
         return result;
+    }
+code2
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        ListNode dummy = new ListNode(0), tail = dummy;		// dummy is the best
+        while(l2 != null || l1 != null) {
+            int sum = (l2 != null ? l2.val : 0) + (l1 != null ? l1.val : 0);
+            if(l1 != null) l1 = l1.next;
+            if(l2 != null) l2 = l2.next;
+            
+            tail.next = new ListNode(sum % 10);
+            tail = tail.next;
+            if(sum / 10 != 0)
+                if(l1 != null)
+                    l1.val ++;
+                else
+                    l1 = new ListNode(1);
+        }
+        return dummy.next;
     }
 
 3. solutions

@@ -3,9 +3,9 @@
 	O(N)
 		starts from the two end, move the lower one to the middle every time
 		prove: if the one we are looking for is on m, n
-			when we are on m, n-1
-			if height[m]>height[n-1], then we move n-1, exactly what we want
-			if height[m]<height[n-1], m n do not form the biggest area
+			when we are on m, n+1
+			if height[m]>height[n+1], then we move n+1, exactly what we want
+			if height[m]<height[n+1], m n do not form the biggest area
 code
     public int maxArea(int[] height) {
         int l = 0;
@@ -137,15 +137,15 @@ code
         List<String> result = new LinkedList<>();	// should return an empty list when appropriate
         for(int i=0; i<digits.length(); i++)
             result = append(result, Integer.valueOf(digits.substring(i, i+1)));	// Integer.valueOf('0') == 48
-        return result;
+        return result;								// actually charAt is more convenient
     }
     private List<String> append(List<String> src, int n) {
-        if(src.isEmpty())
+        if(src.isEmpty())	// we don't add it in letterCombinations() because [] should be returned when given ""
             src.add("");
         List<String> result = new LinkedList<>();
         for(String s: src) {
             for(char c: dic[n])
-                result.add(s + c);
+                result.add(s + c);	// String + character is allowed
         }
         return result;
     }
@@ -157,9 +157,9 @@ code
         Arrays.sort(nums);
         List<List<Integer>> result = new LinkedList<>();
         for(int i=0; i<nums.length-3; i++) {
-            if(i==0 || i>0 && nums[i] != nums[i-1]) {	// watch out! the same way to avoid duplication
+            if(i==0 || nums[i] != nums[i-1]) {		// watch out! the same way to avoid duplication
                 for(int j=i+1; j<nums.length-2; j++) {
-                    if(j==i+1 || j>i+1 && nums[j] != nums[j-1]) {
+                    if(j==i+1 || nums[j] != nums[j-1]) {
                         int l = j+1, r = nums.length-1, sum = target-nums[i]-nums[j];
                         while(l < r) {
                             if(nums[l] + nums[r] == sum) {
@@ -183,25 +183,21 @@ code
 	one pass
 code
     public ListNode removeNthFromEnd(ListNode head, int n) {
-        ListNode r = head, l = head, ll = null;
-        for(int i=0; i<n-1; i++)	// the gap between l and r is n-1
+        ListNode dummy = new ListNode(0), l = dummy, r = dummy;	// dummy is a super useful approach
+        dummy.next = head;		// don't forget this
+        for(int i=0; i<n; i++)		// given that n <= number of nodes
             r = r.next;
         while(r.next != null) {
             r = r.next;
-            ll = l;
             l = l.next;
         }
-        if(ll == null)		// when l is the first one
-            head = head.next;
-        else
-            ll.next = l.next;
-        
-        return head;
+        l.next = l.next.next;
+        return dummy.next;
     }
 
 20. code
     public boolean isValid(String s) {
-        Stack<Character> stack = new Stack<>();		// remember the usage of Stack
+        Stack<Character> stack = new Stack<>();		// remember the usage of Stack, push() and pop()
         for(int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
             if(c == '(' || c == '[' || c == '{')
