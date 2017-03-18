@@ -1,0 +1,112 @@
+41. general idea
+	swap all the positives to their should-be places, e.g. nums[0]==1
+		the first place where nums[i]!=i+1 is the positive misses
+	why O(N)?
+		cuz we visit each number once, and each number will be put in its right place at most once, 
+		so it is O(n) + O(n)
+code
+    public int firstMissingPositive(int[] nums) {
+        int len = nums.length;
+        for(int i=0; i<len; i++)
+            while(nums[i] > 0 && nums[i] <= len && nums[nums[i]-1] != nums[i])	// the third condition to prevent dead loop
+                swap(nums, nums[i]-1, i);
+        for(int i=0; i<len; i++)
+            if(nums[i] != i+1)
+                return i+1;
+        return len+1;			// careful
+    }
+    private void swap(int[] nums, int i, int j) {
+        int tmp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = tmp;
+    }
+
+42. general idea
+	start from both side, and fix the higher one and flow water from the lower part
+	the amount of water to flow is maxL-height[l]
+		cuz there must be something on the right higher than maxL, otherwise the left side will never move to l
+code
+    public int trap(int[] height) {
+        int l = 0, r = height.length - 1, maxL = 0, maxR = 0, result = 0;
+        while(l < r) {
+            if(height[l] <= height[r]) {
+                maxL = Math.max(maxL, height[l]);
+                result += maxL - height[l];
+                l++;
+            } else {
+                maxR = Math.max(maxR, height[r]);
+                result += maxR - height[r];
+                r--;
+            }
+        }
+        return result;
+    }
+
+43. general idea
+		  123
+		x  45
+		-----
+		   15
+		  10
+		 05
+		  12
+		 08
+		04
+		-----
+		01234
+	let a=123, b=45, then length of product is at most a.length+b.length
+	and a[i]*b[j] lays on i+j and i+j+1 (left side is 0)
+code
+    public String multiply(String num1, String num2) {
+        int len1 = num1.length(), len2 = num2.length();
+        int[] result = new int[len1+len2];      	// initailized with 0
+        for(int i=len1-1; i>=0; i--)
+            for(int j=len2-1; j>=0; j--) {
+                int res = (num1.charAt(i) - '0') * (num2.charAt(j) - '0') + result[i+j+1];
+                result[i+j+1] = res % 10;
+                result[i+j] += res / 10;
+            }
+        StringBuffer sb = new StringBuffer();
+        for(int i: result)
+            if(!(sb.length() == 0 && i == 0))
+                sb.append(i);
+        return sb.length() == 0 ? "0" : sb.toString();	// attention
+    }
+
+44. solutions
+	1. backtracking, similar to 10
+		too slow
+	2. see below, the key is you only need to save the position of the last *
+		Since wildcard can represent any sequence of characters, it becomes a greedy problem that you need to match the last star to the least number of character so that letters after star has a match
+code1
+    public boolean isMatch(String s, String p) {
+        if(p.isEmpty())
+            return s.isEmpty();
+        if(p.charAt(0) == '*')
+            return isMatch(s, p.substring(1)) || !s.isEmpty() && isMatch(s.substring(1), p);
+        else if(p.charAt(0) == '?')
+            return !s.isEmpty() && isMatch(s.substring(1), p.substring(1));
+        else
+            return !s.isEmpty() && s.charAt(0) == p.charAt(0) && isMatch(s.substring(1), p.substring(1));
+    }
+code2
+    public boolean isMatch(String s, String p) {
+        int i=0, j=0, lenS = s.length(), lenP = p.length(), starIdx = -1, match = 0;	// match the position in s for going back
+        while(i < lenS) {
+            if(j < lenP && (s.charAt(i) == p.charAt(j) || p.charAt(j) == '?')) {	// move i, j
+                i++;
+                j++;
+            } else if(j < lenP && p.charAt(j) == '*') {					// move j
+                starIdx = j;
+                match = i;
+                j++;
+            } else if(starIdx != -1) {							// go back and move i
+                j = starIdx + 1;
+                match++;
+                i = match;
+            } else									// nothing can be moved
+                return false;
+        }
+        while(j < lenP && p.charAt(j) == '*') j++;	// attention
+        return j == lenP;
+    }

@@ -1,9 +1,7 @@
 216. backtracking
 code
     public List<List<Integer>> combinationSum3(int k, int n) {
-        int[] nums = new int[9];
-        for(int i=0; i<nums.length; i++)
-            nums[i] = i+1;
+        int[] nums = new int[]{1,2,3,4,5,6,7,8,9};
         List<List<Integer>> result = new LinkedList<>();
         List<Integer> combination = new LinkedList<>();
         backtrack(result, combination, nums, 0, n, k);
