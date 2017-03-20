@@ -1,0 +1,166 @@
+51. backtracking
+	use 3 arrays to mark whether a col or a diagonal is occupied
+	about diagonals
+		a nxn matrix has 2n-1 principal diagonal and 2n-1 secondary diagonal
+		positions on the same principal diagonal
+			has the same i-j
+			we use i-j+n-1 to put it between [0, 2n-1]
+		positions on the same secondary diagonal
+			has the same i+j, laying between [0, 2n-1]
+code
+    public List<List<String>> solveNQueens(int n) {
+        List<List<String>> result = new LinkedList<>();
+        char[][] board = new char[n][n];
+        for(int i=0; i<n; i++)
+            for(int j=0; j<n; j++)
+                board[i][j] = '.';
+        backtrack(result, board, n, 0, new boolean[n], new boolean[2*n-1], new boolean[2*n-1]);
+        return result;
+    }
+    private void backtrack(List<List<String>> result, char[][] board, int n, int row, 
+            boolean[] cols, boolean[] d1, boolean[] d2) {
+        if(row == n) {
+            List<String> l = new LinkedList<>();
+            for(char[] r: board)
+                l.add(String.valueOf(r));
+            result.add(l);
+            return;
+        }
+        for(int col = 0; col < n; col++) {
+            if(!cols[col] && !d1[row+col] && !d2[row-col+n-1]) {
+                cols[col] = d1[row+col] = d2[row-col+n-1] = true;	// int i=j=1; WRONG!!
+                board[row][col] = 'Q';					// i=j=1; CORRECT!!
+                backtrack(result, board, n, row+1, cols, d1, d2);
+                cols[col] = d1[row+col] = d2[row-col+n-1] = false;
+                board[row][col] = '.';
+            }
+        }
+    }
+
+52. no need of board
+code
+    public int totalNQueens(int n) {
+        backtrack(n, 0, new boolean[n], new boolean[2*n-1], new boolean[2*n-1]);
+        return total;
+    }
+    private int total;
+    private void backtrack(int n, int row, boolean[] cols, boolean[] d1, boolean[] d2) {
+        if(row == n) {
+            total++;
+            return;
+        }
+        for(int col = 0; col < n; col++)
+            if(!cols[col] && !d1[row+col] && !d2[row-col+n-1]) {
+                cols[col] = d1[row+col] = d2[row-col+n-1] = true;
+                backtrack(n, row+1, cols, d1, d2);
+                cols[col] = d1[row+col] = d2[row-col+n-1] = false;
+            }
+    }
+
+53. general idea
+	if the sum of some elements is negative, then they should be abandoned, 
+	cuz they only decrease the sum of the latter elements
+code
+    public int maxSubArray(int[] nums) {
+        int curSum = 0, max = Integer.MIN_VALUE;
+        for(int i = 0; i<nums.length; i++) {
+            curSum += nums[i];
+            max = Math.max(max, curSum);
+            if(curSum < 0)
+                curSum = 0;
+        }
+        return max;
+    }
+
+54. code
+    public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> result = new LinkedList<>();
+        if(matrix.length == 0)
+            return result;
+        int rowBegin = 0, rowEnd = matrix.length-1, colBegin = 0, colEnd = matrix[0].length-1;	// smart!
+        while(rowBegin <= rowEnd && colBegin <= colEnd) {
+            for(int i=colBegin; i<=colEnd && rowBegin <= rowEnd; i++)	// watch out &&rowBegin<=rowEnd
+                result.add(matrix[rowBegin][i]);
+            rowBegin++;
+            for(int i=rowBegin; i<=rowEnd && colBegin <= colEnd; i++)
+                result.add(matrix[i][colEnd]);
+            colEnd--;
+            for(int i=colEnd; i>=colBegin && rowBegin <= rowEnd; i--)
+                result.add(matrix[rowEnd][i]);
+            rowEnd--;
+            for(int i=rowEnd; i>=rowBegin && colBegin <= colEnd; i--)
+                result.add(matrix[i][colBegin]);
+            colBegin++;
+        }
+        return result;
+    }
+
+55.code
+    public boolean canJump(int[] nums) {
+        int curFar = 0;
+        for(int i=0; i<nums.length-1; i++) {
+            if(i > curFar) break;		// important
+            curFar = Math.max(curFar, i+nums[i]);
+        }
+        return curFar >= nums.length-1;
+    }
+
+56. general idea
+	sort the intervals by their start
+	add the first one to the result if it doesn't overlap with the second
+		otherwise, merge them to be one interval
+	O(NlogN)
+		since sorting takes O(NlogN) and merging takes O(N)
+code
+    public List<Interval> merge(List<Interval> intervals) {
+        List<Interval> result = new LinkedList<>();
+        if(intervals.size() == 0)		// cuz we use intervals.get(0) below
+            return result;
+        Collections.sort(intervals, (i1, i2) -> Integer.compare(i1.start, i2.start));	// here!
+        int start = intervals.get(0).start, end = intervals.get(0).end;
+        for(Interval i: intervals) {		// actually we can start from the second one
+            if(i.start <= end)
+                end = Math.max(end, i.end);
+            else {
+                result.add(new Interval(start, end));
+                start = i.start;
+                end = i.end;
+            }
+        }
+        result.add(new Interval(start, end));	// important! adding the last one
+        return result;
+    }
+
+57. solutions
+	based on 56, see the code
+		since intervals is sorted, we add the newInterval to the proper position first
+		O(N)
+	since intervals is sorted and without overlapping
+		you can find the last interval with i.end < newInterval.start
+		and the first interval with i.start > newInterval.end
+		and merge the middle ones with newInterval and put back
+code
+    public List<Interval> insert(List<Interval> intervals, Interval newInterval) {
+        int len = intervals.size();
+        for(int i=0; i<len; i++)
+            if(newInterval.start < intervals.get(i).start)
+                intervals.add(i, newInterval);		// add(int position, elem), 
+							// the old elem in position will be then in position+1
+        if(intervals.size() == len)		// if it should be the last on in the list
+            intervals.add(newInterval);
+            
+        List<Interval> result = new LinkedList<>();
+        int start = intervals.get(0).start, end = intervals.get(0).end;
+        for(Interval i: intervals) {
+            if(i.start <= end)
+                end = Math.max(end, i.end);
+            else {
+                result.add(new Interval(start, end));
+                start = i.start;
+                end = i.end;
+            }
+        }
+        result.add(new Interval(start, end));
+        return result;
+    }
+
