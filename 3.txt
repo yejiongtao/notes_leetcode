@@ -40,6 +40,7 @@ code
             if(s.charAt(i) == ')' && !stack.isEmpty() && s.charAt(stack.peek()) == '(') {	// check isEmpty()!!
                 stack.pop();
                 max = Math.max(max, i - (stack.isEmpty() ? -1 : stack.peek()));		// note the -1
+					// ( ? : ), the () is necessary
             } else {
                 stack.push(i);
             }
@@ -70,7 +71,7 @@ code
             l = smallest;
             r = len - 1;
         }
-        while(l <= r) {			// <=
+        while(l <= r) {			// <=, cuz when l==r, you still need to check if nums[mid]==target
             int mid = (l + r) / 2;
             if(nums[mid] == target) return mid;
             if(nums[mid] > target) r = mid - 1;
@@ -243,7 +244,7 @@ code
     }
 time complexity (worst-case)
 	not sure if it's correct
-	T(N) = T(N-1) + T(N-2) + ... + T(0), T(0) = 1
+	T(N) = T(N-1) + T(N-2) + ... + T(0), T(0) = 1	// get this from the for-loop
 	so, T(N) = 2T(N-1), T(0) = 1
 	so, T(N) = O(2^N)
 

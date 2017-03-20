@@ -60,7 +60,7 @@ code
     public String multiply(String num1, String num2) {
         int len1 = num1.length(), len2 = num2.length();
         int[] result = new int[len1+len2];      	// initailized with 0
-        for(int i=len1-1; i>=0; i--)
+        for(int i=len1-1; i>=0; i--)			// start from the right!!
             for(int j=len2-1; j>=0; j--) {
                 int res = (num1.charAt(i) - '0') * (num2.charAt(j) - '0') + result[i+j+1];
                 result[i+j+1] = res % 10;
@@ -91,7 +91,7 @@ code1
     }
 code2
     public boolean isMatch(String s, String p) {
-        int i=0, j=0, lenS = s.length(), lenP = p.length(), starIdx = -1, match = 0;	// match the position in s for going back
+        int i=0, j=0, lenS = s.length(), lenP = p.length(), starIdx = -1, match = 0;	// match is the position in s for going back
         while(i < lenS) {
             if(j < lenP && (s.charAt(i) == p.charAt(j) || p.charAt(j) == '?')) {	// move i, j
                 i++;
@@ -110,3 +110,147 @@ code2
         while(j < lenP && p.charAt(j) == '*') j++;	// attention
         return j == lenP;
     }
+
+45. solutions
+	backtracking, too slow
+	O(N) solution based on Greedy
+		the range of the current jump is [curBegin, curEnd], 
+		curFarthest is the farthest point that all points in [curBegin, curEnd] can reach		
+code
+    public int jump(int[] nums) {
+        int jumps = 0, curEnd = 0, curFarthest = 0;
+        for(int i=0; i < nums.length - 1; i++) {	// i < nums.length - 1
+            curFarthest = Math.max(curFarthest, i + nums[i]);
+            if(curEnd == i) {		// you can break the loop in advance, but no need
+                curEnd = curFarthest;
+                jumps++;
+            }
+        }
+        return jumps;
+    }
+
+46. backtracking
+code
+    public List<List<Integer>> permute(int[] nums) {
+        boolean[] used = new boolean[nums.length];
+        List<List<Integer>> result = new LinkedList<>();
+        List<Integer> perm = new LinkedList<>();
+        getPerm(result, perm, nums, used);
+        return result;
+    }
+    private void getPerm(List<List<Integer>> result, List<Integer> perm, int[] nums, boolean[] used) {
+        if(perm.size() == nums.length) {
+            result.add(new ArrayList<>(perm));
+            return;
+        }
+        for(int i=0; i<used.length; i++) {
+            if(!used[i]) {		// can be replaced by !perm.contains(), but I think it's slow
+                perm.add(nums[i]);
+                used[i] = true;
+                getPerm(result, perm, nums, used);
+                perm.remove(perm.size()-1);
+                used[i] = false;
+            }
+        }
+    }
+
+47. code
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        Arrays.sort(nums);		// necessary here
+        boolean[] used = new boolean[nums.length];
+        List<List<Integer>> result = new LinkedList<>();
+        List<Integer> perm = new LinkedList<>();
+        getPerm(result, perm, nums, used);
+        return result;
+    }
+    private void getPerm(List<List<Integer>> result, List<Integer> perm, int[] nums, boolean[] used) {
+        if(perm.size() == nums.length) {
+            result.add(new ArrayList<>(perm));
+            return;
+        }
+        for(int i=0; i<used.length; i++) {
+            if(!used[i])
+                if(!(i > 0 && nums[i] == nums[i-1] && !used[i-1])) {	// this is the crucial part!
+                    perm.add(nums[i]);
+                    used[i] = true;
+                    getPerm(result, perm, nums, used);
+                    used[i] = false;
+                    perm.remove(perm.size() - 1);
+                }
+        }
+    }
+
+48. general idea
+	clockwise rotate
+		first reverse up to down, then swap the symmetry 
+			1 2 3     7 8 9     7 4 1
+			4 5 6  => 4 5 6  => 8 5 2
+			7 8 9     1 2 3     9 6 3
+	anticlockwise rotate
+		first reverse left to right, then swap the symmetry
+			1 2 3     3 2 1     3 6 9
+			4 5 6  => 6 5 4  => 2 5 8
+			7 8 9     9 8 7     1 4 7
+code
+    public void rotate(int[][] matrix) {
+        int n = matrix.length;
+        for(int i=0; i < n/2; i++)	// use examples to determine terminating condition
+            for(int j=0; j < n; j++)
+                swap(matrix, i, j, n-1-i, j);
+        for(int i=0; i < n-1; i++)
+            for(int j=i+1; j<n; j++)
+                swap(matrix, i, j, j, i);
+    }
+    private void swap(int[][] m, int i1, int j1, int i2, int j2) {
+        int temp = m[i1][j1];
+        m[i1][j1] = m[i2][j2];
+        m[i2][j2] = temp;
+    }
+
+49. general idea
+	find a key that shared by every single group
+		1. sort the string to be the key
+		2. represent each character as a prime number, use the product as the key, faster
+code1
+    public List<List<String>> groupAnagrams(String[] strs) {
+        List<List<String>> result = new LinkedList<>();
+        Map<String, List<String>> map = new HashMap<>();
+        for(String s: strs) {
+            char[] a = s.toCharArray();		// for sorting
+            Arrays.sort(a);
+            String key = String.valueOf(a);	// remember this
+            if(!map.containsKey(key)) {
+                List<String> l = new LinkedList<>();
+                result.add(l);
+                map.put(key, l);
+            }
+            map.get(key).add(s);
+        }
+        return result;
+    }
+code2
+    public List<List<String>> groupAnagrams(String[] strs) {
+        int[] prime = {2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101};
+        Map<Integer, List<String>> map = new HashMap<>();
+        List<List<String>> result = new LinkedList<>();	// map.values() returns a Collection, so still need this
+        for(String s: strs) {
+            int key = 1;
+            for(int i=0; i<s.length(); i++)
+                key *= prime[s.charAt(i) - 'a'];
+            if(!map.containsKey(key)) {
+                List<String> list = new LinkedList<>();
+                map.put(key, list);
+                result.add(list);
+            }
+            map.get(key).add(s);
+        }
+        return result;
+    }
+
+50. fabulous O(logN) solution
+code
+    public double myPow(double x, int n) {
+        if(n == 0) return 1;
+        return n % 2==0 ? myPow(x*x, n/2) : myPow(x*x, n/2) * (n < 0 ? 1/x : x);	// -3/2 == -1
+    }	
+	// you cannot just x=1/x, n=-n when n<0, cuz there's an overflow problem
