@@ -78,6 +78,9 @@ code
 		too slow
 	2. see below, the key is you only need to save the position of the last *
 		Since wildcard can represent any sequence of characters, it becomes a greedy problem that you need to match the last star to the least number of character so that letters after star has a match
+		time? at most iterate lenS+lenP times
+			cuz each iteration at least one pointer move forward once
+			?? I doubt it. it go backs as well !!
 code1
     public boolean isMatch(String s, String p) {
         if(p.isEmpty())
@@ -156,7 +159,7 @@ code
 
 47. code
     public List<List<Integer>> permuteUnique(int[] nums) {
-        Arrays.sort(nums);		// necessary here
+        Arrays.sort(nums);			// necessary here!!!!
         boolean[] used = new boolean[nums.length];
         List<List<Integer>> result = new LinkedList<>();
         List<Integer> perm = new LinkedList<>();

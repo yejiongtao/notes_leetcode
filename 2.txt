@@ -79,7 +79,7 @@ code, priority queue
                 else 
                     return 1;
             }
-        });
+        });		// new PriorityQueue<>((l1,l2) -> Integer.compare(l1.val, l2.val));
         for(ListNode l: lists)		// O(NlogN)
             if(l != null)	// watch out
                 queue.add(l);		// one addition is O(logN)

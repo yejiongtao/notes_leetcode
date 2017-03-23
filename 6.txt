@@ -1,0 +1,21 @@
+61. general idea
+	k can be larger than the length of the list
+code
+    public ListNode rotateRight(ListNode head, int k) {
+        ListNode dummy = new ListNode(0), l = dummy, r = dummy;
+        dummy.next = head;
+        
+        int len = 0;
+        for(; r.next != null; len++)
+            r = r.next;
+        if(len == 0)		// avoid %0
+            return head;
+            
+        for(int j=0; j < len - k % len; j++)
+            l = l.next;
+            
+        r.next = dummy.next;
+        dummy.next = l.next;
+        l.next = null;
+        return dummy.next;
+    }

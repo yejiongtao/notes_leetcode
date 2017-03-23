@@ -99,8 +99,8 @@ code
     public boolean canJump(int[] nums) {
         int curFar = 0;
         for(int i=0; i<nums.length-1; i++) {
-            if(i > curFar) break;		// important
             curFar = Math.max(curFar, i+nums[i]);
+            if(i == curFar) break;		// important!
         }
         return curFar >= nums.length-1;
     }
@@ -164,3 +164,55 @@ code
         return result;
     }
 
+58. code
+    public int lengthOfLastWord(String s) {
+        s = s.trim();		// necessary, cuz "a " should return 1 instead of 0
+        for(int i=s.length()-1; i>=0; i--)
+            if(s.charAt(i) == ' ')
+                return s.length()-1-i;
+        return s.length();
+    }
+
+59. code, similar to 54
+    public int[][] generateMatrix(int n) {
+        int[][] matrix = new int[n][n];
+        int rowStart = 0, rowEnd = n-1, colStart = 0, colEnd = n-1, num = 1;
+        while(rowStart <= rowEnd && colStart <= colEnd) {
+            for(int i=colStart; i<=colEnd && num<=n*n; i++, num++)	// watch the second condition
+                matrix[rowStart][i] = num;
+            rowStart++;
+            for(int i=rowStart; i<=rowEnd && num<=n*n; i++, num++)
+                matrix[i][colEnd] = num;
+            colEnd--;
+            for(int i=colEnd; i>=colStart && num<=n*n; i--, num++)
+                matrix[rowEnd][i] = num;
+            rowEnd--;
+            for(int i=rowEnd; i>=rowStart && num<=n*n; i--, num++)
+                matrix[i][colStart] = num;
+            colStart++;
+        }
+        return matrix;
+    }
+
+60. general idea
+	permutations of n numbers can be split into (n-1)! buckets
+code
+    public String getPermutation(int n, int k) {
+        List<Integer> nums = new ArrayList<>();
+        for(int i=1; i<=n; i++)
+            nums.add(i);
+        int[] factorial = new int[n];	// maximum factorial needed is (n-1)!
+        factorial[0] = 1;
+        for(int i=1; i<n; i++)
+            factorial[i] = factorial[i-1] * i;
+        StringBuffer sb = new StringBuffer();
+        
+        k--;				// since k originally starts from 1
+        for(int i=n-1; i>=0; i--) {	// n numbers
+            int idx = k / factorial[i];
+            sb.append(nums.get(idx));
+            nums.remove(idx);		// either ArrayList or LinkedList has O(N) on remove(idx)
+            k -= idx * factorial[i];
+        }
+        return sb.toString();
+    }
