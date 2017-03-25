@@ -19,3 +19,142 @@ code
         l.next = null;
         return dummy.next;
     }
+
+62- DP (Dynamic programming)
+	具有最优子结构性质
+		一个最优化策略的子策略也是最优的
+	无后向性
+		某阶段状态一旦确定,就不受这个状态之后的决策的影响
+	子问题重叠
+		即子问题之间不独立，这个特点并不是必要的。
+		但若子问题相互独立，则 DP 不具备优势，分治算法策略更方便
+
+62. two solutions
+	DP, O(m*n), more general
+		map[i][j]=map[i-1][j]+map[i][j-1], except for the first col and first row
+	optimized DP, see code2
+	formula, O(m)
+		C(m-1+n-1, m-1), from total m-1+n-1 steps choose m-1 steps for going down
+		the problem is, the number is too large for factorial, so might be tricky
+			you may use double for the temporary result
+code1
+    public int uniquePaths(int m, int n) {
+        int[][] map = new int[m][n];
+        for(int i=0; i<m; i++)
+            map[i][0] = 1;
+        for(int j=0; j<n; j++)
+            map[0][j] = 1;
+        for(int i=1; i<m; i++)		// starts from 1
+            for(int j=1; j<n; j++)
+                map[i][j] = map[i-1][j] + map[i][j-1];
+        return map[m-1][n-1];
+    }
+code2
+    public int uniquePaths(int m, int n) {
+        int[] dp = new int[n];
+        dp[0] = 1;
+        for(int i=0; i<m; i++)
+            for(int j=0; j<n; j++)
+                if(j != 0)
+                    dp[j] += dp[j-1];	// the original dp[j] is from the last row
+        return dp[n-1];
+    }
+
+63. general idea
+	first row, all that are after an obstacle should be 0
+	first col, same
+	others, 0 for obstacle and left+above for others
+code
+    public int uniquePathsWithObstacles(int[][] obstacleGrid) {
+        int width = obstacleGrid[0].length;
+        int[] dp = new int[width];
+        dp[0] = 1;
+        for(int[] row: obstacleGrid)
+            for(int j=0; j<width; j++) {
+                if(row[j] == 1)
+                    dp[j] = 0;
+                else if(j != 0)
+                    dp[j] += dp[j-1];
+            }
+        return dp[width-1];
+    }
+
+64. code
+	// no extra space
+    public int minPathSum(int[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        for(int i=0; i<m; i++)
+            for(int j=0; j<n; j++) {
+                if(i == 0 && j == 0);
+                else if(i == 0 && j != 0)
+                    grid[i][j] += grid[i][j-1];
+                else if(i != 0 && j == 0)
+                    grid[i][j] += grid[i-1][j];
+                else
+                    grid[i][j] += Math.min(grid[i-1][j], grid[i][j-1]);
+            }
+        return grid[m-1][n-1];
+    }
+
+65. general idea
+	you go through every if-else in the for-loop, then decide what booleans you need
+	.1 1. -.1 are all valid
+code
+    public boolean isNumber(String s) {
+        s = s.trim();
+        
+        boolean numberSeen = false, numberAfterE = false, eSeen = false, pointSeen = false;
+        for(int i=0; i<s.length(); i++) {
+            if(s.charAt(i) >= '0' && s.charAt(i) <= '9') {
+                numberSeen = true;
+                numberAfterE = true;
+            } else if(s.charAt(i) == '.') {
+                if(eSeen || pointSeen)
+                    return false;
+                pointSeen = true;
+            } else if(s.charAt(i) == 'e') {
+                if(eSeen || !numberSeen)
+                    return false;
+                eSeen = true;
+                numberAfterE = false;
+            } else if(s.charAt(i) == '-' || s.charAt(i) == '+') {
+                if(!(i == 0 || s.charAt(i-1) == 'e'))
+                    return false;
+            } else
+                return false;
+        }
+        return numberSeen && numberAfterE;
+    }
+
+66. general idea
+	because is plusing only 1, so it can be simple
+code
+    public int[] plusOne(int[] digits) {
+        int n = digits.length;
+        for(int i=n-1; i>=0; i--) {
+            if(digits[i] < 9) {		// any digit less than 9, the whole process is done
+                digits[i]++;
+                return digits;
+            }
+            digits[i] = 0;
+        }
+        int[] newNumber = new int[n+1];	// only when all digits are 9 will this be reached
+        newNumber[0] = 1;
+        return newNumber;
+    }
+
+67. code
+	// 十位数加减也这么搞就好
+    public String addBinary(String a, String b) {
+        int i = a.length() -1, j = b.length() -1, carry = 0;
+        StringBuffer sb = new StringBuffer();
+        while(i >=0 || j >= 0) {
+            int sum = carry;
+            if(i >= 0) sum += a.charAt(i--) - '0';
+            if(j >= 0) sum += b.charAt(j--) - '0';
+            sb.append(sum % 2);
+            carry = sum / 2;
+        }
+        if(carry != 0) sb.append(carry);	// carry must be <= 1
+        return sb.reverse().toString();		// reverse()
+    }

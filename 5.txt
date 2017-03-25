@@ -177,7 +177,7 @@ code
     public int[][] generateMatrix(int n) {
         int[][] matrix = new int[n][n];
         int rowStart = 0, rowEnd = n-1, colStart = 0, colEnd = n-1, num = 1;
-        while(rowStart <= rowEnd && colStart <= colEnd) {
+        while(rowStart <= rowEnd && colStart <= colEnd) {		// or num<=n*n
             for(int i=colStart; i<=colEnd && num<=n*n; i++, num++)	// watch the second condition
                 matrix[rowStart][i] = num;
             rowStart++;
@@ -198,6 +198,8 @@ code
 	permutations of n numbers can be split into (n-1)! buckets
 code
     public String getPermutation(int n, int k) {
+        k--;				// since k originally starts from 1
+
         List<Integer> nums = new ArrayList<>();
         for(int i=1; i<=n; i++)
             nums.add(i);
@@ -207,7 +209,6 @@ code
             factorial[i] = factorial[i-1] * i;
         StringBuffer sb = new StringBuffer();
         
-        k--;				// since k originally starts from 1
         for(int i=n-1; i>=0; i--) {	// n numbers
             int idx = k / factorial[i];
             sb.append(nums.get(idx));
