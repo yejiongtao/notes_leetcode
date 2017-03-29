@@ -158,3 +158,59 @@ code
         if(carry != 0) sb.append(carry);	// carry must be <= 1
         return sb.reverse().toString();		// reverse()
     }
+
+68. code
+    public List<String> fullJustify(String[] words, int maxWidth) {
+        List<String> result = new LinkedList<>();
+        for(int i=0, w; i<words.length; i=w) {		// w points to the begining of next line
+            int len = -1;				// smart!
+            for(w = i; w<words.length && len + words[w].length() + 1 <= maxWidth; w++)
+                len += words[w].length() + 1;		// +1
+            
+            StringBuffer sb = new StringBuffer(words[i]);	// smart!
+            int space = 1, extra = 0;		// if it's last line, space should be 1
+            if(w != i+1 && w != words.length) {			// not single word && not last line
+								// when single word, (w-i-1) == 0, /0 error
+                space = (maxWidth - len) / (w-i-1) + 1;		// +1
+                extra = (maxWidth - len) % (w-i-1);
+            }
+            for(int j=i+1; j<w; j++) {
+                for(int k=0; k<space; k++) sb.append(' ');
+                if(extra-- > 0) sb.append(' ');
+                sb.append(words[j]);
+            }
+            int left = maxWidth - sb.length();		// smart! 
+            for(int k=0; k<left; k++) sb.append(' ');
+            result.add(sb.toString());
+        }
+        return result;
+    }
+
+69. code
+    public int mySqrt(int x) {
+        int l = 1, r = x;		// starts from 1 to prevent /0 error
+        while(l <= r) {
+            int mid = l + (r-l)/2;	// (l+r)/2 may overflows, and l/2+r/2 is not equivalent to (l+r)/2
+            if(mid > x/mid) r = mid-1;	// mid*mid may overflow
+            else if(mid < x/mid) l = mid+1;
+            else return mid;		// when mid==2, and x==5, although mid*mid!=x, returning mid is what we want
+        }
+        return r;			// important! use mySqrt(2) to determine this
+    }					// or you can simply say we want the smaller one between l and r, which is r
+
+70. DP, fibonacci
+	f(n) = f(n-1) + f(n-2), cuz
+		when at n-1, we can take 1 step to get to n, and when at n-2, we can take 2 steps to get to n,
+		so there's no overlapping between the two solution sets
+code
+    public int climbStairs(int n) {
+        if(n == 1) return 1;
+        if(n == 2) return 2;
+        int l = 1, r = 2, all = 0;
+        for(int i=3; i<=n; i++) {	// <=n
+            all = l + r;
+            l = r;
+            r = all;
+        }
+        return all;
+    }

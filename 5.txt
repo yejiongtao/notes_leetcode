@@ -100,9 +100,10 @@ code
         int curFar = 0;
         for(int i=0; i<nums.length-1; i++) {
             curFar = Math.max(curFar, i+nums[i]);
-            if(i == curFar) break;		// important!
+            if(i == curFar)
+                return false;		// important!
         }
-        return curFar >= nums.length-1;
+        return true;
     }
 
 56. general idea
@@ -213,7 +214,7 @@ code
             int idx = k / factorial[i];
             sb.append(nums.get(idx));
             nums.remove(idx);		// either ArrayList or LinkedList has O(N) on remove(idx)
-            k -= idx * factorial[i];
+            k %= factorial[i];
         }
         return sb.toString();
     }

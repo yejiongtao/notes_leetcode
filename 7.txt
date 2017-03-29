@@ -1,0 +1,208 @@
+71. code
+    public String simplifyPath(String path) {
+        Stack<String> stack = new Stack<>();
+        Set<String> skip = new HashSet<>(Arrays.asList("", ".", ".."));		// new HashMap<>(List)
+        for(String s: path.split("/")) {					// split(String), smart!
+            if(s.equals("..") && !stack.isEmpty())		// /.. equals to /
+                stack.pop();
+            else if(!skip.contains(s))
+                stack.push(s);
+        }
+        StringBuffer sb = new StringBuffer();
+        for(String s: stack)					// same order as other collections
+            sb.append("/" + s);
+        return sb.length() == 0 ? "/" : sb.toString();		// watch out!
+    }
+
+72. DP
+	dp[i][j] represents the min operations to convert a string of length i to a string of length j
+		(i-1 and j-1 are the last)
+		if word1[i-1] == word2[j-1], dp[i][j] = dp[i-1][j-1]
+		else, there are 3 methods to convert word1[0..i) to word2[0..j), the minimum should be chosen
+			replace word1[i-1] with word2[j-1]
+				dp[i][j] = dp[i-1][j-1] + 1 (for replacement)
+			delete word1[i-1] and let word1[0..i-1) == word2[0..j)
+				dp[i][j] = dp[i-1][j] + 1 (for deletion)
+			insert word2[j-1] to the end of word1, and let word1[0..i) == word2[0..j-1)
+				dp[i][j] = dp[i][j-1] + 1 (for insertion)
+code
+    public int minDistance(String word1, String word2) {
+        int len1 = word1.length(), len2 = word2.length();
+        int[][] dp = new int[len1+1][len2+1];
+        for(int i = 0; i < len1+1; i++)
+            dp[i][0] = i;		// all deletions
+        for(int j = 0; j < len2+1; j++)
+            dp[0][j] = j;		// all deletions
+        for(int i = 1; i < len1+1; i++)
+            for(int j = 1; j < len2+1; j++) {
+                if(word1.charAt(i-1) == word2.charAt(j-1))
+                    dp[i][j] = dp[i-1][j-1];
+                else
+                    dp[i][j] = Math.min(dp[i-1][j-1]+1, Math.min(dp[i-1][j]+1, dp[i][j-1]+1));
+            }
+        return dp[len1][len2];
+    }
+
+73. O(1) space solution
+	use the first row and first col to store the status of each row and col
+		cuz first row and fist col are the first to be accessed, change of their values won't do any harm
+	but you need two variable to store the status of the first row and col itself
+		the reason you cannot use matrix[0][0] to store the status of first row and first col
+			you cannot use one variable to store two status
+code
+    public void setZeroes(int[][] matrix) {
+        boolean fr = false, fc = false;
+        int m = matrix.length, n = matrix[0].length;
+        for(int i=0; i<m; i++)
+            for(int j=0; j<n; j++)
+                if(matrix[i][j] == 0) {
+                    if(i == 0) fr = true;
+                    if(j == 0) fc = true;
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+        for(int i=1; i<m; i++)		// attention! starts from 1!!!
+            for(int j=1; j<n; j++)
+                if(matrix[0][j]==0 || matrix[i][0]==0)
+                    matrix[i][j] = 0;
+        if(fr)
+            for(int j=0; j<n; j++)
+                matrix[0][j] = 0;
+        if(fc)
+            for(int i=0; i<m; i++)
+                matrix[i][0] = 0;
+    }
+
+74. solutions
+	apply binary search to the first col to determine which row it's in
+		however, it's a bit tricky to determine due to some corner cases
+	treat it as a 1D array, see the code
+code
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if(matrix.length == 0) return false;
+        int m = matrix.length, n = matrix[0].length, l = 0, r = m * n -1;
+        while(l <= r) {
+            int mid = (l+r)/2;
+            if(matrix[mid / n][mid % n] == target) return true;
+            else if(matrix[mid / n][mid % n] > target) r = mid-1;
+            else l = mid+1;
+        }
+        return false;
+    }
+
+75. O(N) solution
+	each element is reached once
+code
+    public void sortColors(int[] nums) {
+        int l = 0, r = nums.length-1;
+        for(int i=0; i<=r; i++) {		// i <= r
+            while(nums[i] == 2 && i != r)	// the order of two whiles matters!!!
+                swap(nums, i, r--);		// cuz before i, they are already all 0 or 1
+            while(nums[i] == 0 && i != l)	// so the second while will never introduce new 2
+                swap(nums, i, l++);
+        }
+    }
+    private void swap(int[] nums, int i, int j) {
+        int temp = nums[i];
+        nums[i] = nums[j];
+        nums[j] = temp;
+    }
+
+76. sliding window
+code
+    public String minWindow(String s, String t) {
+        HashMap<Character, Integer> dic = new HashMap<>();
+        for(char c: t.toCharArray())
+            dic.put(c, dic.containsKey(c) ? dic.get(c) + 1: 1);
+        int l = 0, r = 0, count = t.length(), min = Integer.MAX_VALUE, start = -1, end = -1;
+        while(r < s.length()) {
+            char c = s.charAt(r);
+            r++;
+            if(dic.containsKey(c)) {
+                if(dic.get(c) > 0)
+                    count--;		// count is the remaining characters that hasn't appear
+                dic.put(c, dic.get(c)-1);
+            
+                while(count == 0) {		// the use of while is brilliant. move l to get the minimum
+                    if(r-l < min) {
+                        min = r-l;
+                        start = l;
+                        end = r;
+                    }
+                    char cl = s.charAt(l);
+                    if(dic.containsKey(cl)) {
+                        dic.put(cl, dic.get(cl) + 1);
+                        if(dic.get(cl) > 0)
+                            count++;
+                    }
+                    l++;
+                }
+            }
+        }
+        return start == -1 ? "" : s.substring(start, end);
+    }
+
+77. you don't need int[]
+code
+    public List<List<Integer>> combine(int n, int k) {
+        List<List<Integer>> result = new LinkedList<>();
+        getCom(result, new LinkedList<>(), n, k, 1);	// starts from 1
+        return result;
+    }
+    private void getCom(List<List<Integer>> result, List<Integer> com, int n, int k, int start) {
+        if(com.size() == k) {
+            result.add(new ArrayList<>(com));
+            return;
+        }
+        if(start > n)
+            return;
+        for(int i=start; i<=n; i++) {
+            com.add(i);
+            getCom(result, com, n, k, i+1);
+            com.remove(com.size()-1);
+        }
+    }
+
+78. code
+    public List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> result = new LinkedList<>();
+        getSub(result, new LinkedList<>(), nums, 0);
+        return result;
+    }
+    private void getSub(List<List<Integer>> result, List<Integer> sub, int[] nums, int start) {
+        result.add(new ArrayList<>(sub));		// add everyone, even when start==nums.length
+        if(start == nums.length)
+            return;
+        for(int i=start; i<nums.length; i++) {		// here is similar to combinations
+            sub.add(nums[i]);
+            getSub(result, sub, nums, i+1);
+            sub.remove(sub.size()-1);
+        }
+    }
+
+79. without extra space
+code
+    public boolean exist(char[][] board, String word) {
+        if(board.length == 0) return false;
+        int m = board.length, n = board[0].length;
+        for(int i=0; i<m; i++)
+            for(int j=0; j<n; j++)
+                if(expand(board, word, i, j, 0))
+                    return true;
+        return false;
+    }
+    private boolean expand(char[][] board, String word, int i, int j, int cur) {
+        if(cur == word.length()) return true;
+        if(i==-1 || i==board.length || j==-1 || j==board[0].length) 	// make it simple for later
+            return false;
+        if(board[i][j] != word.charAt(cur)) return false;
+        
+        char origin = board[i][j];
+        board[i][j] = '*';					// this is why we don't need a boolean array
+        boolean match = expand(board, word, i-1, j, cur+1) || 
+            expand(board, word, i+1, j, cur+1) ||
+            expand(board, word, i, j-1, cur+1) ||
+            expand(board, word, i, j+1, cur+1);
+        board[i][j] = origin;
+        return match;
+    }
