@@ -171,8 +171,8 @@ code
     }
     private void getSub(List<List<Integer>> result, List<Integer> sub, int[] nums, int start) {
         result.add(new ArrayList<>(sub));		// add everyone, even when start==nums.length
-        if(start == nums.length)
-            return;
+        // if(start == nums.length)
+        //    return;			// no need, it won't get into the for-loop
         for(int i=start; i<nums.length; i++) {		// here is similar to combinations
             sub.add(nums[i]);
             getSub(result, sub, nums, i+1);

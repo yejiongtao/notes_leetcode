@@ -33,27 +33,28 @@ code
         while(cur != null) {
             while(cur.next != null && cur.val == cur.next.val)	// get to the last node of this value
                 cur = cur.next;
-            if(pre.next == cur)		// if there's only one of this value, keep it
+            if(pre.next == cur)	{	// if there's only one of this value, keep it
                 pre = pre.next;
-            else
+                cur = cur.next;
+            } else {
                 pre.next = cur.next;	// more than one of this value, remove them all
-            cur = pre.next;
+                cur = cur.next;
+            }
         }
         return dummy.next;
     }
 
-83. code
+83. similar to 82
+code
     public ListNode deleteDuplicates(ListNode head) {
         ListNode dummy = new ListNode(0), pre = dummy, cur = head;
         dummy.next = head;
         while(cur != null) {
-            if(cur.next != null && cur.next.val == cur.val) {
-                cur = cur.next;		// watch out! set the new cur and pre
-                pre.next = cur;
-            } else {
+            while(cur.next != null && cur.val == cur.next.val)
                 cur = cur.next;
-                pre = pre.next;
-            }
+            pre.next = cur;
+            pre = cur;
+            cur = cur.next;
         }
         return dummy.next;
     }
@@ -162,4 +163,103 @@ code2
                 max = Math.max(max, h[j]*(r[j]-l[j]+1));
         }
         return max;
+    }
+
+86. code
+    public ListNode partition(ListNode head, int x) {
+        ListNode dummy1 = new ListNode(0), dummy2 = new ListNode(0), tail1 = dummy1, tail2 = dummy2;
+        ListNode cur = head;
+        while(cur != null) {
+            if(cur.val < x) {
+                tail1.next = cur;
+                tail1 = tail1.next;
+            } else {
+                tail2.next = cur;
+                tail2 = tail2.next;
+            }
+            cur = cur.next;
+        }
+        tail1.next = dummy2.next;
+        tail2.next = null;		// watch out
+        return dummy1.next;
+    }
+
+87. general idea
+	if equals, is scramble
+	else, split the strings into two parts, compare them separately
+		notice that there are two ways of spliting, which is the essential of scrambling
+	exponential, I think
+		if we only consider the for-loop at the bottom, T(N) = c(T(N-1)+T(N-2)+...+T(1)), c is a constant
+		if c=1, then T(N) = O(2^N), so I believe it's exponential
+code
+    public boolean isScramble(String s1, String s2) {
+        if(s1.equals(s2)) return true;
+        
+        Map<Character, Integer> map = new HashMap<>();
+        for(char c: s1.toCharArray())
+            map.put(c, map.containsKey(c) ? map.get(c)+1 : 1);
+        for(char c: s2.toCharArray())
+            if(!map.containsKey(c)) return false;
+            else {
+                if(map.get(c) == 1) map.remove(c);
+                else map.put(c, map.get(c)-1);
+            }
+            
+        int len = s1.length();
+        for(int i=1; i<len; i++) {		// starts from 1
+            if(isScramble(s1.substring(0, i), s2.substring(0, i)) && isScramble(s1.substring(i), s2.substring(i)))
+                return true;
+            if(isScramble(s1.substring(0, i), s2.substring(len-i)) && isScramble(s1.substring(i), s2.substring(0, len-i)))
+                return true;
+        }
+        return false;
+    }
+
+88. general idea
+	starts from the end of the array
+code
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m-1, j = n-1, tail = m+n-1;
+        while(j >= 0) {		// only worry about j, cuz if j<0, then the rest of nums1 is already in position
+            if(i >= 0) {
+                if(nums1[i] > nums2[j])
+                    nums1[tail--] = nums1[i--];
+                else
+                    nums1[tail--] = nums2[j--];
+            } else
+                nums1[tail--] = nums2[j--];
+        }
+    }
+
+89. general idea
+	you can generate graycode of 3 from that of 2
+		graycode of 2:  00  01  11  10
+		graycode of 3:(000 001 011 010)(110 111 101 100)
+			except the first digit, the second part is symmetric of the first part
+			cuz in this way, the middle two numbers vary in only the first digit
+code
+    public List<Integer> grayCode(int n) {
+        List<Integer> result = new ArrayList<>();	// ArrayList is better, cuz we do locating very often
+        result.add(0);			// it says non-negative n, so no worry of 0
+        for(int i=0; i<n; i++)
+            for(int j=result.size()-1; j>=0; j--)	// result.size() changes, but since we use it once, it's alright
+                result.add(result.get(j) | 1<<i);	// otherwise you should put it out of the for-loop
+        return result;
+    }
+
+90. code
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> result = new LinkedList<>();
+        getSub(result, new LinkedList<>(), nums, 0);
+        return result;
+    }
+    private void getSub(List<List<Integer>> result, List<Integer> sub, int[] nums, int start) {
+        result.add(new ArrayList<>(sub));
+        for(int i=start; i<nums.length; i++)
+            if(!(i != start && nums[i] == nums[i-1])) {		// here's the difference from SubSet1
+                sub.add(nums[i]);
+                getSub(result, sub, nums, i+1);
+                sub.remove(sub.size()-1);
+            }
     }

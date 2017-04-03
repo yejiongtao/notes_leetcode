@@ -1,0 +1,214 @@
+91. you can use backtracking, but far too slow compared to DP
+code
+    public int numDecodings(String s) {
+        if(s.length() == 0) return 0;
+        int len = s.length();
+        int[] dp = new int[len];
+        
+        for(int i=0; i<s.length(); i++) {	// starts from 0 cuz dp[0] is not necessarily 1 (not 1 when s[0]=='0')
+            int cur = s.charAt(i) - '0', pre = i>0 ? s.charAt(i-1)-'0' : 3;	// put s[-1] 3 or above 3
+            if(cur > 0)					// 0 is no match
+                dp[i] += i>0 ? dp[i-1] : 1;
+            if(pre*10 + cur <= 26 && pre*10+cur >= 10)	// >= 10 
+                dp[i] += i>1 ? dp[i-2] : 1;
+        }
+        return dp[len-1];
+    }
+
+92. code
+    public ListNode reverseBetween(ListNode head, int m, int n) {
+        ListNode dummy = new ListNode(0), pre = dummy, tail = dummy;
+        dummy.next = head;
+        for(int i=0; i<m-1; i++) pre = pre.next;	// m-1
+        for(int i=0; i<n; i++) tail = tail.next;
+        while(pre.next != tail) {
+            ListNode tmp = pre.next;
+            pre.next = tmp.next;
+            tmp.next = tail.next;
+            tail.next = tmp;
+        }
+        return dummy.next;
+    }
+
+93. backtracking
+code
+    public List<String> restoreIpAddresses(String s) {
+        List<String> result = new LinkedList<>();
+        getIP(result, new LinkedList<>(), s, 0);
+        return result;
+    }
+    private void getIP(List<String> result, List<String> ip, String s, int start) {
+        if(start == s.length() && ip.size() == 4) {	// two conditions!!
+            String str = ip.get(0);
+            for(int i=1; i<ip.size(); i++) str += "." + ip.get(i);
+            result.add(str);
+            return;
+        }
+        if(ip.size() == 4) 
+            return;
+        for(int end = start+1; end<=s.length(); end++) {
+            String sub = s.substring(start, end);
+            if(Integer.valueOf(sub) > 255 || sub.charAt(0)=='0' && sub.length()>1)	// 01 is not a valid sub
+                break;		// break instead of continue, cuz if this end is not valid, neither do those largers
+            ip.add(sub);
+            getIP(result, ip, s, end);
+            ip.remove(ip.size()-1);
+        }
+    }
+
+94. recursive solution is trivial, try iterative ways
+	actually it's implementing the calling stack on your own
+code
+    public List<Integer> inorderTraversal(TreeNode root) {
+        Stack<TreeNode> stack = new Stack<>();
+        List<Integer> result = new LinkedList<>();
+        TreeNode cur = root;
+        while(cur != null || !stack.isEmpty()) {
+            if(cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            } else {
+                cur = stack.pop();
+                result.add(cur.val);
+                cur = cur.right;
+            }
+        }
+        return result;
+    }
+
+95. solutions
+	divide and conquer
+		exponential time, cuz T(N)=T(N-1)+...+T(1)
+		!! the backtracking way used to solve combinations, permutations, etc won't work here
+			cuz a tree goes both ways. it's not like the ones mentioned above that only go one way
+			so it's hard to determine whether a tree is well-established
+code1
+    public List<TreeNode> generateTrees(int n) {
+        if(n == 0) return new LinkedList<>();	// cuz we add(null), so the result won't be empty if we don't do this
+        return generateSubtrees(1, n);
+    }
+    private List<TreeNode> generateSubtrees(int start, int end) {
+        List<TreeNode> res = new LinkedList<>();
+        if(start > end) {
+            res.add(null);		// attention!! null is a legal element, has equal position as non-null element
+            return res;
+        }
+        for(int i=start; i<=end; i++) {
+            List<TreeNode> leftSubtrees = generateSubtrees(start, i-1);
+            List<TreeNode> rightSubtrees = generateSubtrees(i+1, end);
+            for(TreeNode left: leftSubtrees)
+                for(TreeNode right: rightSubtrees) {
+                    TreeNode root = new TreeNode(i);
+                    root.left = left;
+                    root.right = right;
+                    res.add(root);
+                }
+        }
+        return res;
+    }
+
+96. DP
+code
+    public int numTrees(int n) {
+        if(n == 0) return 0;		// to avoid dp[1] out of bound when n==0
+        int[] dp = new int[n+1];
+        dp[0] = dp[1] = 1;	
+        for(int len=2; len<=n; len++)
+            for(int i=0; i<len; i++)
+                dp[len] += dp[i] * dp[len-1-i];
+        return dp[n];
+    }
+
+97. DP
+	backtracking is slow
+code
+    public boolean isInterleave(String s1, String s2, String s3) {
+        int len1 = s1.length(), len2 = s2.length(), len3 = s3.length();
+        if(len1+len2 != len3) return false;
+        boolean[][] dp = new boolean[len1+1][len2+1];
+        for(int i=0; i < len1+1; i++)
+            for(int j=0; j < len2+1; j++)
+                if(i == 0 && j == 0)
+                    dp[i][j] = true;
+                else if(i == 0 && j != 0)
+                    dp[i][j] = s2.charAt(j-1) == s3.charAt(i+j-1) && dp[i][j-1];
+                else if(i != 0 && j == 0)
+                    dp[i][j] = s1.charAt(i-1) == s3.charAt(i+j-1) && dp[i-1][j];
+                else
+                    dp[i][j] = s2.charAt(j-1) == s3.charAt(i+j-1) && dp[i][j-1]
+                        || s1.charAt(i-1) == s3.charAt(i+j-1) && dp[i-1][j];
+        return dp[len1][len2];
+    }
+
+98. solution1
+	dealing with overflow!
+		when inputting [Integer.MIN_VALUE, Integer.MIN_VALUE], false should be returned
+			but if overflows are not taken care of, true would be returned
+		I use Long to deal with it
+	every node's left.val<val, right.val>val does not make it a BST
+		the smallest of the whole right subtree must larger than val
+solution2, based on in-order traversal
+	more universal. the in-order traversal of a BST is in acsending order
+code1
+    public boolean isValidBST(TreeNode root) {
+        return isValid(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+    private boolean isValid(TreeNode root, long l, long r) {
+        if(root == null) return true;
+        if(root.val < l || root.val > r) return false;
+        if(!isValid(root.left, l, (long)root.val-1)) return false;
+        if(!isValid(root.right, (long)root.val+1, r)) return false;
+        return true;
+    }
+code2
+    public boolean isValidBST(TreeNode root) {
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root, pre = null;
+        while(cur != null || !stack.isEmpty())
+            if(cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            } else {
+                cur = stack.pop();
+                if(pre != null && cur.val <= pre.val) return false;
+                pre = cur;
+                cur = cur.right;
+            }
+        return true;
+    }
+
+99. general idea
+	O(logN) space, N is the count of nodes
+		no matter you use recursive or implement stack yourself
+		logN is the average depth of a binary tree, therefore the average size of the stack
+	find the 2 swapped elements in an ordered array
+		132, one descending pair found (32), swap it
+		321, two descending pairs found (32,21), swap the left of the first pair and the right of the second
+	if it requires to swap the two nodes intead of the value
+		it gets harder cuz you will need to store the parents
+code
+    public void recoverTree(TreeNode root) {
+        TreeNode node1 = null, node2 = null;
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root, pre = null;
+        while(cur != null || !stack.isEmpty())
+            if(cur != null) {
+                stack.push(cur);
+                cur = cur.left;
+            } else {
+                cur = stack.pop();
+                if(pre != null && pre.val >= cur.val)
+                    if(node1 == null) {
+                        node1 = pre;
+                        node2 = cur;
+                    } else {
+                        node2 = cur;
+                        break;
+                    }
+                pre = cur;
+                cur = cur.right;
+            }
+        int temp = node1.val;
+        node1.val = node2.val;
+        node2.val = temp;
+    }

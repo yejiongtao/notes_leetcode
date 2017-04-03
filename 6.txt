@@ -180,7 +180,7 @@ code
                 sb.append(words[j]);
             }
             int left = maxWidth - sb.length();		// smart! 
-            for(int k=0; k<left; k++) sb.append(' ');
+            for(int k=0; k<left; k++) sb.append(' ');	// for(int k=0; k<maxWidth-sb.length(); k++) NOT right! cuz sb.length() changes!!!
             result.add(sb.toString());
         }
         return result;
