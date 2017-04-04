@@ -110,10 +110,9 @@ code1
 96. DP
 code
     public int numTrees(int n) {
-        if(n == 0) return 0;		// to avoid dp[1] out of bound when n==0
         int[] dp = new int[n+1];
-        dp[0] = dp[1] = 1;	
-        for(int len=2; len<=n; len++)
+        dp[0] = 1;	
+        for(int len=1; len<=n; len++)
             for(int i=0; i<len; i++)
                 dp[len] += dp[i] * dp[len-1-i];
         return dp[n];
@@ -211,4 +210,11 @@ code
         int temp = node1.val;
         node1.val = node2.val;
         node2.val = temp;
+    }
+
+100. code
+    public boolean isSameTree(TreeNode p, TreeNode q) {
+        if(p == null && q == null) return true;
+        if(p == null || q == null) return false;
+        return p.val == q.val && isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
     }

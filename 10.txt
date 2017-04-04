@@ -1,0 +1,123 @@
+101. recursive solution
+	similar to 100
+iterative solution
+	watch out! a symmetric binary tree's in-order traversal is symmetric
+		but an in-order traversal is not efficient to prove a binary tree is symmetric
+	the idea is to implement the calling stack of the recursive way
+code1
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null) return true;
+        return isSymmetric(root.left, root.right);
+    }
+    private boolean isSymmetric(TreeNode l, TreeNode r) {
+        if(l == null && r == null) return true;
+        if(l == null || r == null) return false;
+        return l.val == r.val && isSymmetric(l.left, r.right) && isSymmetric(l.right, r.left);
+    }
+code2
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null) return true;
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root.left);
+        stack.push(root.right);
+        while(!stack.isEmpty()) {
+            TreeNode node1 = stack.pop(), node2 = stack.pop();
+            if(node1 == null && node2 == null) continue;
+            if(node1 == null || node2 == null || node1.val != node2.val) return false;
+            stack.push(node1.left);
+            stack.push(node2.right);
+            stack.push(node1.right);
+            stack.push(node2.left);
+        }
+        return true;
+    }
+
+102. code
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> result = new LinkedList<>();
+        List<TreeNode> nodes = Arrays.asList(root);
+        level(result, nodes);
+        return result;
+    }
+    private void level(List<List<Integer>> result, List<TreeNode> nodes) {
+        List<Integer> res = new LinkedList<>();
+        List<TreeNode> next = new LinkedList<>();
+        for(TreeNode n: nodes)
+            if(n != null) {
+                res.add(n.val);
+                next.add(n.left);
+                next.add(n.right);
+            }
+        if(!res.isEmpty()) {
+            result.add(res);
+            level(result, next);
+        }
+    }
+
+103. similar to 102
+code
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        List<List<Integer>> res = new LinkedList<>();
+        List<TreeNode> nodes = Arrays.asList(root);
+        level(res, nodes, true);
+        return res;
+    }
+    private void level(List<List<Integer>> res, List<TreeNode> nodes, boolean left) {
+        List<Integer> nums = new LinkedList<>();
+        List<TreeNode> next = new LinkedList<>();
+        for(TreeNode n: nodes)
+            if(n != null) {
+                nums.add(n.val);
+                next.add(n.left);
+                next.add(n.right);
+            }
+        if(!nums.isEmpty()) {
+            if(!left) Collections.reverse(nums);	// here
+            res.add(nums);
+            level(res, next, !left);
+        }
+    }
+
+104. code
+    public int maxDepth(TreeNode root) {
+        if(root == null) return 0;
+        return 1 + Math.max(maxDepth(root.left), maxDepth(root.right));
+    }
+
+105. general idea
+	preorder[0] is the root node
+	we can find the preorder[0] in inorder, let's say it's inorder[5]
+	then inorder[0...4] are on the left, inorder[6....] are on the right
+code
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        return build(0, 0, inorder.length-1, preorder, inorder);
+    }
+    private TreeNode build(int preStart, int inStart, int inEnd, int[] preorder, int[] inorder) {
+        if(inStart > inEnd) return null;
+        TreeNode root = new TreeNode(preorder[preStart]);
+        int idx = 0;
+        for(int i=inStart; i<=inEnd; i++)
+            if(inorder[i] == preorder[preStart]) {	// definitely can be found
+                idx = i;
+                break;					// actually no need to break, cuz it says no duplicates
+            }
+        root.left = build(preStart+1, inStart, idx-1, preorder, inorder);
+        root.right = build(preStart+1+idx-inStart, idx+1, inEnd, preorder, inorder);	// brilliant!!!
+        return root;	// idx-inStart is the number of nodes in the left subtree
+    }
+
+106. code
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        return build(postorder.length-1, 0, inorder.length-1, postorder, inorder);
+    }
+    private TreeNode build(int post, int inStart, int inEnd, int[] postorder, int[] inorder) {
+        if(inStart > inEnd) return null;
+        TreeNode root = new TreeNode(postorder[post]);
+        int idx = 0;
+        for(int i=inStart; i<=inEnd; i++)
+            if(inorder[i] == postorder[post])
+                idx = i;
+        root.left = build(post-1-(inEnd-idx), inStart, idx-1, postorder, inorder);
+        root.right = build(post-1, idx+1, inEnd, postorder, inorder);
+        return root;
+    }
