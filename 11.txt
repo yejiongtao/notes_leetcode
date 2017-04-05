@@ -8,3 +8,63 @@ code
         if(root.right == null) return 1 + minDepth(root.left);
         return 1 + Math.min(minDepth(root.left), minDepth(root.right));
     }
+
+112. code
+    public boolean hasPathSum(TreeNode root, int sum) {
+        if(root == null) return false;
+        if(root.left == null && root.right == null && sum == root.val) return true;
+        return hasPathSum(root.left, sum-root.val) || hasPathSum(root.right, sum-root.val);
+    }
+
+113. code
+    public List<List<Integer>> pathSum(TreeNode root, int sum) {
+        List<List<Integer>> res = new LinkedList<>();
+        getPath(res, new LinkedList<>(), root, sum);
+        return res;
+    }
+    private void getPath(List<List<Integer>> res, List<Integer> path, TreeNode root, int sum) {
+        if(root == null) return;
+        path.add(root.val);
+        if(root.left == null && root.right == null && root.val == sum) {
+            res.add(new ArrayList<>(path));
+            path.remove(path.size()-1);		// watch out
+            return;
+        }
+        getPath(res, path, root.left, sum-root.val);
+        getPath(res, path, root.right, sum-root.val);
+        path.remove(path.size()-1);
+    }
+
+114. code
+    public void flatten(TreeNode root) {
+        flat(root);
+    }
+    private TreeNode flat(TreeNode root) {	// returns the last node
+        if(root == null) return null;
+        TreeNode l = flat(root.left), r = flat(root.right);
+        if(l != null) {				// if l==null, already done
+            l.right = root.right;		// l is the last node of the left subtree, root.left is the first node
+            root.right = root.left;
+            root.left = null;			// watch out!
+        }
+        return r == null ? (l == null ? root : l) : r;	// the order of l and r cannot be changed
+    }
+
+115. DP
+	e.g. s = "abb", t = "ab"
+	when i=2, j=3
+		t[i-1] == s[j-1]
+		so, dp[2][3] = dp[1][2] + dp[2][2]
+code
+    public int numDistinct(String s, String t) {
+        int lenT = t.length(), lenS = s.length();
+        int[][] dp = new int[lenT+1][lenS+1];
+        for(int i=0; i<lenT+1; i++)
+            for(int j=0; j<lenS+1; j++)
+                if(i == 0) dp[i][j] = 1;		// watch out
+                else if(j == 0) dp[i][j] = 0;
+                else if(t.charAt(i-1) == s.charAt(j-1))
+                    dp[i][j] = dp[i-1][j-1]*1 + dp[i][j-1];
+                else dp[i][j] = dp[i][j-1];
+        return dp[lenT][lenS];
+    }
