@@ -214,7 +214,7 @@ code
 
 100. code
     public boolean isSameTree(TreeNode p, TreeNode q) {
-        if(p == null && q == null) return true;
+        if(p == null && q == null) return true;		// chech null first, so that p.val is valid
         if(p == null || q == null) return false;
         return p.val == q.val && isSameTree(p.left, q.left) && isSameTree(p.right, q.right);
     }

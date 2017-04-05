@@ -72,7 +72,7 @@ code
                 next.add(n.right);
             }
         if(!nums.isEmpty()) {
-            if(!left) Collections.reverse(nums);	// here
+            if(!left) Collections.reverse(nums);	// here, O(1)
             res.add(nums);
             level(res, next, !left);
         }
@@ -120,4 +120,111 @@ code
         root.left = build(post-1-(inEnd-idx), inStart, idx-1, postorder, inorder);
         root.right = build(post-1, idx+1, inEnd, postorder, inorder);
         return root;
+    }
+
+107. code
+    public List<List<Integer>> levelOrderBottom(TreeNode root) {
+        List<List<Integer>> res = new LinkedList<>();
+        List<TreeNode> nodes = Arrays.asList(root);
+        level(res, nodes);
+        Collections.reverse(res);	// only here. LinkedList is a doubly-linked list, so reverse is O(1)
+        return res;
+    }
+    private void level(List<List<Integer>> res, List<TreeNode> nodes) {
+        List<Integer> nums = new LinkedList<>();
+        List<TreeNode> next = new LinkedList<>();
+        for(TreeNode n: nodes)
+            if(n != null) {
+                nums.add(n.val);
+                next.add(n.left);
+                next.add(n.right);
+            }
+        if(!nums.isEmpty()) {
+            res.add(nums);
+            level(res, next);
+        }
+    }
+
+108. code
+    public TreeNode sortedArrayToBST(int[] nums) {
+        int l = 0, r = nums.length-1;
+        return build(l, r, nums);
+    }
+    private TreeNode build(int l, int r, int[] nums) {
+        if(l > r) return null;
+        int mid = (l+r)/2;
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = build(l, mid-1, nums);
+        root.right = build(mid+1, r, nums);
+        return root;
+    }
+
+109. solutions
+	1. O(N) space, O(N) time
+		create an array from the list and the use 108
+	2. O(logN) space, O(NlogN) time
+		for every subtree, move to the middle, see code2
+		O(logN) space for the stack
+	3. O(logN) space, O(N) time
+		make use of the inorder traversal
+code2
+    public TreeNode sortedListToBST(ListNode head) {
+        return build(head, null);
+    }
+    private TreeNode build(ListNode head, ListNode tail) {	// tail is not included
+        if(head == tail) return null;
+        ListNode slow = head, fast = head;
+        while(fast != tail && fast.next != tail) {		// brilliant
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        TreeNode root = new TreeNode(slow.val);
+        root.left = build(head, slow);
+        root.right = build(slow.next, tail);
+        return root;
+    }
+code3
+    public TreeNode sortedListToBST(ListNode head) {
+        cur = head;
+        int count = 0;
+        while(head != null) {
+            count++;
+            head = head.next;
+        }
+        return build(0, count-1);
+    }
+    private ListNode cur;
+    private TreeNode build(int l, int r) {
+        if(l > r) return null;
+        int mid = (l+r)/2;
+        TreeNode left = build(l, mid-1);		// left first, inorder traversal
+        TreeNode root = new TreeNode(cur.val);
+        cur = cur.next;					// update cur before calling build() again
+        root.left = left;
+        root.right = build(mid+1, r);
+        return root;
+    }
+
+110. solutions
+	top-down, O(NlongN)?
+	bottom-up, O(N)
+code1
+    public boolean isBalanced(TreeNode root) {
+        if(root == null) return true;
+        return Math.abs(depth(root.left)-depth(root.right)) <= 1 
+            && isBalanced(root.left) && isBalanced(root.right);
+    }
+    private int depth(TreeNode r) {
+        return r==null ? 0 : 1 + Math.max(depth(r.left), depth(r.right));
+    }
+code 2
+    public boolean isBalanced(TreeNode root) {
+        return depth(root) != -1;		// -1 means is not balanced
+    }
+    private int depth(TreeNode root) {
+        if(root == null) return 0;
+        int left = depth(root.left), right = depth(root.right);
+        if(left == -1 || right == -1) return -1;
+        if(Math.abs(left - right) > 1) return -1;
+        return 1 + Math.max(left, right);
     }
