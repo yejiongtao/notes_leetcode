@@ -1,0 +1,155 @@
+121. code
+    public int maxProfit(int[] prices) {
+        int maxPro = 0, minPrice = Integer.MAX_VALUE;	// maxPro is max profit
+        for(int cur: prices) {
+            minPrice = Math.min(minPrice, cur);
+            maxPro = Math.max(maxPro, cur - minPrice);
+        }
+        return maxPro;
+    }
+
+122. code
+    public int maxProfit(int[] prices) {
+        int total = 0;
+        for(int i=1; i<prices.length; i++)
+            if(prices[i] > prices[i-1])
+                total += prices[i] - prices[i-1];
+        return total;
+    }
+
+123. general idea
+	dp[k][i] = Math.max(dp[k][i-1], prices[i] - prices[j] + dp[k-1][j]) {j in range [0, i-1]}
+	         = Math.max(dp[k][i-1], prices[i] + max(dp[k-1][j] - prices[j])
+code
+    public int maxProfit(int[] prices) {
+        if(prices.length == 0) return 0;		// cuz we use prices[0]
+        int K = 2;
+        int[][] dp = new int[K+1][prices.length];
+        for(int k=1; k<=K; k++) {			// dp[0][i] == 0
+            int tmpMax = dp[k-1][0] - prices[0];
+            for(int i=1; i<prices.length; i++) {
+                dp[k][i] = Math.max(dp[k][i-1], prices[i] + tmpMax);
+                tmpMax = Math.max(tmpMax, dp[k-1][i] - prices[i]);	// for the calculation of dp[k][i+1]
+            }
+        }
+        return dp[K][prices.length-1];
+    }
+
+124. O(N), one pass traversal
+	a path has a highest node, we pass a node to max(TreeNode) to be the highest node of a path
+code
+    public int maxPathSum(TreeNode root) {
+        max(root);
+        return max;
+    }
+    private int max = Integer.MIN_VALUE;
+    private int max(TreeNode root) {
+        if(root == null) return 0;
+        int left = Math.max(0, max(root.left)), right = Math.max(0, max(root.right));
+        max = Math.max(max, root.val + left + right);
+        return root.val + Math.max(left, right);	// return the value that may be part of upper path
+    }
+
+125. code
+    public boolean isPalindrome(String s) {
+        s = s.toLowerCase();
+        int l = 0, r = s.length()-1;
+        while(l < r) {
+            char cl = s.charAt(l), cr = s.charAt(r);
+            if(Character.isLetterOrDigit(cl) && Character.isLetterOrDigit(cr)) {
+                if(cl != cr) return false;
+                l++; r--;
+            } else {
+                if(!Character.isLetterOrDigit(cr)) r--;
+                if(!Character.isLetterOrDigit(cl)) l++;
+            }
+        }
+        return true;
+    }
+
+126. general idea
+	it's like level-order traversal, with the requirement to save the legal paths
+	similar to 127
+code
+    public List<List<String>> findLadders(String beginWord, String endWord, List<String> wordList) {
+        Set<String> dict = new HashSet<>(wordList);
+        List<List<String>> res = new LinkedList<>();
+        Queue<List<String>> todo = new LinkedList<>();	// should keep the path
+        List<String> initialPath = new LinkedList<>();
+        initialPath.add(beginWord);
+        todo.add(initialPath);
+        while(!todo.isEmpty() && res.isEmpty()) {	// res.isEmpty() to ensure only shortests are returned
+            int size = todo.size();
+            Set<String> toBeRemoved = new HashSet<>();
+            for(int i=0; i<size; i++) {
+                List<String> path = todo.poll();
+                char[] s = path.get(path.size()-1).toCharArray();	// last one
+                for(int j=0; j<s.length; j++) {
+                    char origin = s[j];
+                    for(char c='a'; c<='z'; c++)
+                        if(c != origin) {
+                            s[j] = c;
+                            String dest = String.valueOf(s);
+                            if(dict.contains(dest)) {
+                                List<String> newPath = new LinkedList<>(path);
+                                newPath.add(dest);
+                                toBeRemoved.add(dest);	// do not remove at once, cuz maybe useful to others
+                                if(dest.equals(endWord))
+                                    res.add(newPath);
+                                else
+                                    todo.add(newPath);
+                            }
+                            s[j] = origin;
+                        }
+                }
+            }
+            for(String s: toBeRemoved)
+                dict.remove(s);
+        }
+        return res;
+    }
+
+127. BFS, O(N)
+	it's actually finding shortest path between two node in a graph
+code
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        Set<String> dict = new HashSet<>(wordList);	// O(1) for searching and deleting
+        Queue<String> todo = new LinkedList<>();
+        todo.add(beginWord);
+        int res = 1;
+        while(!todo.isEmpty()) {
+            res++;
+            int frozenSize = todo.size();		// freeze it!
+            for(int i=0; i<frozenSize; i++) {
+                char[] s = todo.poll().toCharArray();
+                for(int j=0; j<s.length; j++) {
+                    char origin = s[j];
+                    for(char k='a'; k<='z'; k++)
+                        if(k != origin) {
+                            s[j] = k;
+                            String dest = String.valueOf(s);
+                            if(dict.contains(dest)) {
+                                if(dest.equals(endWord))
+                                    return res;
+                                todo.add(dest);
+                                dict.remove(dest);
+                            }
+                        }
+                    s[j] = origin;
+                }
+            }
+        }
+        return 0;
+    }
+
+
+
+BST insertion
+    public TreeNode insert(TreeNode root, int val) {
+        if(root == null) root = new TreeNode(val);
+        if(val < root.val)
+            root.left = insert(root.left, val);
+        else
+            root.right = insert(root.right, val);
+        return root;
+    }

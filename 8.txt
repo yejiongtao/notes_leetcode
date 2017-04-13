@@ -241,7 +241,7 @@ code
 code
     public List<Integer> grayCode(int n) {
         List<Integer> result = new ArrayList<>();	// ArrayList is better, cuz we do locating very often
-        result.add(0);			// it says non-negative n, so no worry of 0
+        result.add(0);
         for(int i=1; i<=n; i++)
             for(int j=result.size()-1; j>=0; j--)	// result.size() changes, but since we use it once, it's alright
                 result.add(result.get(j) | (1<<(i-1)));	// otherwise you should put it out of the for-loop

@@ -24,7 +24,7 @@ code
     }
     private void getPath(List<List<Integer>> res, List<Integer> path, TreeNode root, int sum) {
         if(root == null) return;
-        path.add(root.val);
+        path.add(root.val);			// watch out!
         if(root.left == null && root.right == null && root.val == sum) {
             res.add(new ArrayList<>(path));
             path.remove(path.size()-1);		// watch out
@@ -62,9 +62,81 @@ code
         for(int i=0; i<lenT+1; i++)
             for(int j=0; j<lenS+1; j++)
                 if(i == 0) dp[i][j] = 1;		// watch out
-                else if(j == 0) dp[i][j] = 0;
-                else if(t.charAt(i-1) == s.charAt(j-1))
-                    dp[i][j] = dp[i-1][j-1]*1 + dp[i][j-1];
-                else dp[i][j] = dp[i][j-1];
+                else if(j != 0) { 
+	            if(t.charAt(i-1) == s.charAt(j-1))
+                        dp[i][j] = dp[i-1][j-1]*1 + dp[i][j-1];
+                    else dp[i][j] = dp[i][j-1];
+	        }
         return dp[lenT][lenS];
+    }
+
+116. O(1) space, so no stack, no recursion!
+	make use of the 'next' pointer you've created
+code
+    public void connect(TreeLinkNode root) {
+        if(root == null) return;
+        TreeLinkNode head = root;		// head is the first node of each level
+        while(head.left != null) {
+            TreeLinkNode cur = head;
+            while(cur != null) {
+                cur.left.next = cur.right;
+                if(cur.next != null)
+                    cur.right.next = cur.next.left;
+                cur = cur.next;
+            }
+            head = head.left;
+        }
+    }
+
+117. code
+    public void connect(TreeLinkNode root) {
+        TreeLinkNode cur = root;
+        while(cur != null) {
+            TreeLinkNode dummyChild = new TreeLinkNode(0), curChild = dummyChild;	// dummy!!!! 
+            while(cur != null) {
+                if(cur.left != null) {
+                    curChild.next = cur.left;
+                    curChild = curChild.next;
+                }
+                if(cur.right != null) {
+                    curChild.next = cur.right;
+                    curChild = curChild.next;
+                }
+                cur = cur.next;
+            }
+            cur = dummyChild.next;
+        }
+    }
+
+118. code
+    public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> res = new ArrayList<>();	// better than LinkedList, cuz random access is frequent
+        for(int i=1; i<=numRows; i++) {
+            List<Integer> row = new ArrayList<>();
+            for(int j=0; j<i; j++)
+                if(j==0 || j==i-1) row.add(1);
+                else row.add(res.get(i-2).get(j-1) +res.get(i-2).get(j));
+            res.add(row);
+        }
+        return res;
+    }
+
+119. code
+    public List<Integer> getRow(int rowIndex) {
+        List<Integer> row = new ArrayList<>(rowIndex+1);	// initial capacity, to avoid expanding
+        for(int len=1; len<=rowIndex+1; len++) {
+            row.add(1);
+            for(int j=len-2; j>0; j--)		// from the last but two to the second
+                row.set(j, row.get(j) + row.get(j-1));
+        }
+        return row;
+    }
+
+120. bottom-up, O(1), brilliant!!
+code
+    public int minimumTotal(List<List<Integer>> triangle) {
+        for(int i=triangle.size()-2; i>=0; i--)
+            for(int j=0; j <= i; j++)
+                triangle.get(i).set(j, triangle.get(i).get(j) + Math.min(triangle.get(i+1).get(j), triangle.get(i+1).get(j+1)));
+        return triangle.get(0).get(0);
     }

@@ -58,8 +58,8 @@ code2
 code
     public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
         List<List<Integer>> res = new LinkedList<>();
-        List<TreeNode> nodes = Arrays.asList(root);
-        level(res, nodes, true);
+        List<TreeNode> nodes = Arrays.asList(root);	// ATTENTION! the List created via asList is unmodifiable!!
+        level(res, nodes, true);			// AND! changing the backing array changes the list as well!
         return res;
     }
     private void level(List<List<Integer>> res, List<TreeNode> nodes, boolean left) {
@@ -206,7 +206,7 @@ code3
     }
 
 110. solutions
-	top-down, O(NlongN)?
+	top-down, O(NlogN)?
 	bottom-up, O(N)
 code1
     public boolean isBalanced(TreeNode root) {
