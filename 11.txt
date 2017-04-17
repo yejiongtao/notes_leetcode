@@ -110,13 +110,13 @@ code
 
 118. code
     public List<List<Integer>> generate(int numRows) {
-        List<List<Integer>> res = new ArrayList<>();	// better than LinkedList, cuz random access is frequent
-        for(int i=1; i<=numRows; i++) {
-            List<Integer> row = new ArrayList<>();
-            for(int j=0; j<i; j++)
-                if(j==0 || j==i-1) row.add(1);
-                else row.add(res.get(i-2).get(j-1) +res.get(i-2).get(j));
-            res.add(row);
+        List<List<Integer>> res = new LinkedList<>();
+        List<Integer> row = new ArrayList<>();		// ArrayList
+        for(int len=1; len<=numRows; len++) {
+            row.add(1);
+            for(int j=len-2; j>0; j--)			// from the last but two to the second
+                row.set(j, row.get(j) + row.get(j-1));
+            res.add(new ArrayList<>(row));
         }
         return res;
     }
@@ -133,6 +133,8 @@ code
     }
 
 120. bottom-up, O(1), brilliant!!
+	top-down also works, but the problem is
+		you have to deal with the corner cases to ensure no index out-of-bounds
 code
     public int minimumTotal(List<List<Integer>> triangle) {
         for(int i=triangle.size()-2; i>=0; i--)

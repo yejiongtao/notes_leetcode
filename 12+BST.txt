@@ -142,6 +142,116 @@ code
         return 0;
     }
 
+128. O(N)
+	cuz we walk through each streak only once
+code
+    public int longestConsecutive(int[] nums) {
+        Set<Integer> set = new HashSet<>();
+        for(int n: nums) set.add(n);
+        int max = 0;
+        for(int n: nums)
+            if(!set.contains(n-1)) {			// find the beginning of each streak 
+                int end = n+1;
+                while(set.contains(end)) end++;		// find the end of the streak
+                max = Math.max(max, end-n);
+            }
+        return max;
+    }
+
+129. code1, recursion
+    public int sumNumbers(TreeNode root) {
+        dfs(root, 0);
+        return sum;
+    }
+    private int sum;
+    private void dfs(TreeNode root, int s) {
+        if(root == null) return;
+        int cur = s * 10 + root.val;
+        if(root.left == null && root.right == null) sum += cur;		// leaf
+	else {
+            dfs(root.left, cur);
+            dfs(root.right, cur);
+        }
+    }
+code2, interation
+    public int sumNumbers(TreeNode root) {
+        int sum = 0;
+        Map<TreeNode, Integer> map = new HashMap<>();	// have to save the sum in the stack
+        map.put(root, 0);		// since there's no tuple in Java, and here the order doesn't matter
+					// I use a map instead
+        while(!map.isEmpty()) {
+            Map<TreeNode, Integer> newMap = new HashMap<>();
+            for(TreeNode node: map.keySet())
+                if(node != null) {
+                    int cur = map.get(node) * 10 + node.val;
+                    if(node.left == null && node.right == null)
+                        sum += cur;
+                    else {
+                        newMap.put(node.left, cur);
+                        newMap.put(node.right, cur);
+                    }
+                }
+            map = newMap;
+        }
+        return sum;
+    }
+
+130. solutions
+	DFS
+		use DFS to find the O-regions that are connected to a boundary, set them to '*'
+			set the remaining O's to 'X'
+			set the '*'s back to 'O'
+		the problem is, when there's a large O-region, using DFS results in a stack overflow!!
+	Union Find
+		http://blog.csdn.net/dm_vincent/article/details/7655764
+code
+    public void solve(char[][] board) {
+        if(board.length == 0) return;
+        int m = board.length, n = board[0].length;
+        unionSet = new int[m*n];
+        hasEdgeO = new boolean[m*n];			// identify whether this set is connected to the edge
+        size = new int[m*n];
+        
+        for(int i=0; i<unionSet.length; i++) {
+            unionSet[i] = i;
+            size[i] = 1;
+            int x = i/n, y = i%n;
+            if((x==0 || x==m-1 || y==0 || y==n-1) && board[x][y] == 'O')
+                hasEdgeO[i] = true;
+        }
+        for(int i=0; i<unionSet.length; i++) {		// union with the upper one and the left one
+            int x = i/n, y = i%n;
+            if(x > 0 && board[x-1][y] == board[x][y]) union(i, i-n);	// i-n
+            if(y > 0 && board[x][y-1] == board[x][y]) union(i, i-1);
+        }
+        for(int i=0; i<unionSet.length; i++) {
+            int x = i/n, y = i%n;
+            if(board[x][y] == 'O' && !hasEdgeO[findRoot(i)])	// findRoot, cuz we only update root's hasEdgeO
+                board[x][y] = 'X';
+        }
+    }
+    private int[] unionSet;
+    private boolean[] hasEdgeO;
+    private int[] size;						// for a more balanced tree
+    private void union(int a, int b) {
+        int rootA = findRoot(a), rootB = findRoot(b);
+        if(rootA == rootB) return;
+        hasEdgeO[rootA] = hasEdgeO[rootB] = hasEdgeO[rootA] || hasEdgeO[rootB];
+        if(size[rootA] < size[rootB]) {
+            unionSet[rootA] = rootB;
+            size[rootB] += size[rootA];
+        } else {
+            unionSet[rootB] = rootA;
+            size[rootA] += size[rootB];
+        }
+    }
+    private int findRoot(int i) {	// with the flattening, findRoot() will be O(1) amortized
+        while(unionSet[i] != i) {
+            unionSet[i] = unionSet[unionSet[i]];		// flatten the tree
+            i = unionSet[i];
+        }
+        return i;
+    }
 
 
 BST insertion

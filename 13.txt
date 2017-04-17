@@ -1,0 +1,192 @@
+131. backtracking
+code
+    public List<List<String>> partition(String s) {
+        List<List<String>> res = new LinkedList<>();
+        partition(res, new LinkedList<>(), s, 0);
+        return res;
+    }
+    private void partition(List<List<String>> res, List<String> part, String s, int start) {
+        if(start == s.length()) {
+            res.add(new ArrayList<>(part));
+            return;
+        }
+        for(int end = start+1; end <= s.length(); end++)
+            if(isValid(s, start, end)) {
+                part.add(s.substring(start, end));
+                partition(res, part, s, end);
+                part.remove(part.size()-1);
+            }
+    }
+    private boolean isValid(String s, int start, int end) {
+        end--;
+        while(start < end)
+            if(s.charAt(start) != s.charAt(end)) return false;
+            else {
+                start++;
+                end--;
+            }
+        return true;
+    }
+
+132. DP
+	i is the index of the middle of a palindrome
+		j is the 'radius' of the palindrome
+	tips
+		for (int j = 0; i-j >= 0 && i+j < n && c[i-j]==c[i+j] ; j++)
+                    cut[i+j+1] = Math.min(cut[i+j+1],1+cut[i-j]);
+		确定 for 里面条件 i-j >= 0 && i+j < n 之后，c[i-j]==c[i+j]和下面for 的内容就依次来写就好
+			cut[i+j+1]表示前 i+j+1个，因为 从 c[0]到 c[i+j]实际上是 i+j+1个
+			[0, i-j) 是 i-j 个，故 cut[i-j]
+code
+    public int minCut(String s) {
+        int n = s.length();
+        int[]  cut = new int[n+1];  	// cut[k] is number of cuts for the first k characters
+        char[] c = s.toCharArray(); 
+        for (int i = 0; i <= n; i++) cut[i] = i-1;		// cut[0]==-1, important!!
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; i-j >= 0 && i+j < n && c[i-j]==c[i+j] ; j++) 	// odd length palindrome
+                cut[i+j+1] = Math.min(cut[i+j+1],1+cut[i-j]);		// must start from c[i-j], not c[i-j-1]
+									// in order to update cut[i+j+1]
+            for (int j = 0; i-j >= 0 && i+j+1 < n && c[i-j] == c[i+j+1]; j++) 	// even length palindrome
+                cut[i+j+2] = Math.min(cut[i+j+2],1+cut[i-j]);
+        }
+        return cut[n];
+    }
+
+133. general idea
+	labels are unique, so can be used as key
+	if labels are not unique, see code2
+		the key point is to establish a one-to-one relationship between the old graph and the new one
+code1
+    public UndirectedGraphNode cloneGraph(UndirectedGraphNode node) {
+        if(node == null) return null;
+        Map<Integer, UndirectedGraphNode> map = new HashMap<>();	// contains all new nodes
+        map.put(node.label, new UndirectedGraphNode(node.label));
+        Queue<UndirectedGraphNode> queue = new LinkedList<>();		// to be traversed old nodes
+        queue.add(node);
+        while(!queue.isEmpty()) {					// BFS, each node is only visited once!
+            UndirectedGraphNode cur = queue.poll();
+            for(UndirectedGraphNode neighbor: cur.neighbors) {
+                if(!map.containsKey(neighbor.label)) {
+                    map.put(neighbor.label, new UndirectedGraphNode(neighbor.label));
+                    queue.add(neighbor);			// here! add only inside this if
+                }
+                map.get(cur.label).neighbors.add(map.get(neighbor.label));
+            }
+        }
+        return map.get(node.label);
+    }
+code2
+    public UndirectedGraphNode cloneGraph(UndirectedGraphNode node) {
+        if(node == null) return null;
+        int count = 0;
+        Map<UndirectedGraphNode, Integer> map = new HashMap<>();	// use nodes as keys
+        Queue<UndirectedGraphNode> queue = new LinkedList<>();
+        queue.add(node);
+        while(!queue.isEmpty()) {				// BFS
+            UndirectedGraphNode cur = queue.poll();
+            map.put(cur, count++);
+            for(UndirectedGraphNode neighbor: cur.neighbors)
+                if(!map.containsKey(neighbor))
+                    queue.add(neighbor);
+        }
+        UndirectedGraphNode[] nodes = new UndirectedGraphNode[count];
+        for(int i=0; i<nodes.length; i++)
+            nodes[i] = new UndirectedGraphNode(0);
+        for(UndirectedGraphNode old: map.keySet()) {
+            int idx = map.get(old);
+            nodes[idx].label = old.label;
+            for(UndirectedGraphNode neighbor: old.neighbors)
+                nodes[idx].neighbors.add(nodes[map.get(neighbor)]);
+        }
+        return nodes[0];
+    }
+
+134. general idea
+	solution1
+		let d[i] = gas[i] - cost[i]
+			assume that d[0]+d[1]+...+d[k] is the smallest sum starting from 0
+			then we have d[k+1] >= 0, cuz
+				d[0]+d[1]+...+d[k]+d[k+1] >= d[0]+d[1]+...+d[k]
+			similarly, we have d[k+1]+d[k+2]>=0, ..., d[k+1]+...+d[n-1]>=0
+			how about those wrapped over?
+				d[0]+...+d[j]+d[k+1]+...+d[n-1] >= d[0]+...d[k] + d[k+1]+...+d[n-1]
+				so, if d[0]+...+d[n-1]>=0, those wrapped over are also >= 0
+		prove that if total < 0, then there's no solution
+			assume there's a solution if total<0, then for the whole trip, total must >= 0, contradiction
+	solution2
+		greedy
+code1
+    public int canCompleteCircuit(int[] gas, int[] cost) {
+        int total = 0, begin = 0, min = Integer.MAX_VALUE;
+        for(int i=0; i<gas.length; i++) {
+            total += gas[i] - cost[i];
+            if(total < min) {
+                min = total;
+                begin = i+1;
+            }
+        }
+        return total >= 0 ? begin%gas.length : -1;	// %!
+    }
+code2
+    public int canCompleteCircuit(int[] gas, int[] cost) {
+        int tank = 0, begin = 0, total = 0;
+        for(int i=0; i<gas.length; i++) {
+            total += gas[i] - cost[i];
+            tank += gas[i] - cost[i];
+            if(tank < 0) {	// tank<0, 则从上一个 begin 到现在一定是先正后负，其中任何一个都不可能是答案，因为连 i 都到不了
+                tank = 0;
+                begin = i+1;
+            }
+        }
+        return total >= 0 ? begin % gas.length : -1;
+    }
+
+135. general idea
+	only says about >, nothing about =
+		e.g. with ratings [100,200,200], nums should be [1,2,1]
+	e.g.
+		ratings	1 4 3 2 1
+		nums	1 1 1 1 1
+			1 2 1 1 1
+			1 4 3 2 1
+code
+    public int candy(int[] ratings) {
+        int len = ratings.length;
+        int[] nums = new int[len];
+        for(int i=0; i<len; i++)
+            nums[i] = 1;
+        for(int i=1; i<len; i++)
+            if(ratings[i-1] < ratings[i])	// 往右走，每次都改变右边那个
+                nums[i] = nums[i-1]+1;
+        for(int i=len-2; i>=0; i--)
+            if(ratings[i] > ratings[i+1])	// 往左走，每次都改变左边那个
+                nums[i] = Math.max(nums[i], nums[i+1]+1);	// attention!
+        int total = 0;
+        for(int n: nums)
+            total += n;
+        return total;
+    }
+
+136. general idea
+	0 ^ n = n
+	n ^ n = 0
+code
+    public int singleNumber(int[] nums) {
+        int res = 0;
+        for(int n: nums)
+            res ^= n;
+        return res;
+    }
+see 260
+
+137. general idea
+code
+    public int singleNumber(int[] nums) {
+        int ones = 0, twos = 0;
+        for(int n: nums) {
+            ones = (ones ^ n) & ~twos;
+            twos = (twos ^ n) & ~ones;
+        }
+        return ones;
+    }
