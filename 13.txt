@@ -181,6 +181,16 @@ code
 see 260
 
 137. general idea
+	consider n, ones, twos are all 1-bit
+		since bitwise operations are independent among bits, you can then apply your algorithm to 32-bits
+	it's like using two bits to represent 3 status
+		00 -> 01 -> 10 -> 00
+	use ^n cuz it changes when 1 n arrives, when 2 n's arrive, and so on
+	to implement 00 -> 01 -> 10 -> 00
+		(ones represent the lower bit, twos the higher)
+		ones = ones ^ n, and if(twos == 1) ones = 0
+			programmatically, ones = (ones ^ n) & ~twos;
+		twos = twos ^ n, and if(ones' == 1) twos = 0, where ones' is the ones after the last step
 code
     public int singleNumber(int[] nums) {
         int ones = 0, twos = 0;
@@ -188,5 +198,163 @@ code
             ones = (ones ^ n) & ~twos;
             twos = (twos ^ n) & ~ones;
         }
-        return ones;
+        return ones;		// cuz the number we are looking for appears only once, (01)
+    }
+code2, every one appears 5 times except for 1 element, which appears once
+	// 000
+	// 001
+	// 010
+	// 011
+	// 100
+	public static int singleNumber(int[] nums) {
+		int ones = 0, twos = 0, threes = 0;
+		for(int n: nums) {
+			int old1 = ones, old2 = twos;
+			ones = (ones ^ n) & ~threes;	// when threes==0, ones=0, else ones^=n
+			twos = twos ^ (n & old1);	// twos changes only when the old1 is 1  (^1 results in changes)
+			threes = old1 & old2;		// threes=1 only when old1==1 && old2==1
+		}
+		return ones;
+	}
+
+138. general idea	
+	similar to Clone Graph
+		while use direct iteration of the list instead of BFS
+	a way to optimized space to be O(1):
+		1. iterative the original list and duplicate each node. 
+			The duplicate of each node follows its original immediately
+		2. iterative the list and create the randome pointers for the duplicates
+		3. restore the original list and extract the duplicated nodes
+code1
+    public RandomListNode copyRandomList(RandomListNode head) {
+        if(head == null) return null;
+        Map<Integer, RandomListNode> map = new HashMap<>();
+        map.put(head.label, new RandomListNode(head.label));
+        RandomListNode cur = head;
+        while(cur != null) {
+            if(cur.next != null) {
+                if(!map.containsKey(cur.next.label))
+                    map.put(cur.next.label, new RandomListNode(cur.next.label));
+                map.get(cur.label).next = map.get(cur.next.label);
+            }
+            if(cur.random != null) {
+                if(!map.containsKey(cur.random.label))
+                    map.put(cur.random.label, new RandomListNode(cur.random.label));
+                map.get(cur.label).random = map.get(cur.random.label);
+            }
+            cur = cur.next;     	// cur.next must has been in the map
+        }
+        return map.get(head.label);
+    }
+code2
+    public RandomListNode copyRandomList(RandomListNode head) {
+        RandomListNode cur = head;
+        while(cur != null) {
+            RandomListNode copy = new RandomListNode(cur.label);
+            copy.next = cur.next;
+            cur.next = copy;
+            cur = cur.next.next;
+        }
+        cur = head;
+        while(cur != null) {
+            if(cur.random != null)		// watch out!
+                cur.next.random = cur.random.next;
+            cur = cur.next.next;
+        }
+        RandomListNode dummy = new RandomListNode(0), tail = dummy;
+        cur = head;
+        while(cur != null) {
+            tail.next = cur.next;
+            tail = tail.next;
+            cur.next = cur.next.next;		// restore the original list
+            cur = cur.next;
+        }
+        return dummy.next;
+    }
+
+139. DP
+    public boolean wordBreak(String s, List<String> wordDict) {
+        Set<String> dict = new HashSet<>(wordDict);
+        int len = s.length();
+        boolean[] dp = new boolean[len+1];
+        dp[0] = true;
+        for(int i=1; i<len+1; i++)
+            for(int j=i-1; j>=0; j--)
+                if(dict.contains(s.substring(j, i)) && dp[j]) {
+                    dp[i] = true;
+                    break;
+                }
+        return dp[len];
+    }
+
+140. general idea
+	solution1
+		backtracking is easy, but too slow cuz the duplicate computations
+	solution2
+		DP is still too slow for some cases
+		e.g. "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			["a","aa","aaa","aaaa","aaaaa","aaaaaa","aaaaaaa","aaaaaaaa","aaaaaaaaa","aaaaaaaaaa"]
+	solution3
+		use a HashMap to store some intermediate results for speeding up
+code1
+    public List<String> wordBreak(String s, List<String> wordDict) {
+        Set<String> dict = new HashSet<>(wordDict);
+        List<String> res = new LinkedList<>();
+        wordBreak(res, new LinkedList<>(), s, 0, dict);
+        return res;
+    }
+    private void wordBreak(List<String> res, List<String> cur, String s, int start, Set<String> dict) {
+        if(start == s.length()) {
+            res.add(String.join(" ", cur));
+            return;
+        }
+        for(int end = start+1; end <= s.length(); end++) {
+            String sub = s.substring(start, end);
+            if(dict.contains(sub)) {
+                cur.add(sub);
+                wordBreak(res, cur, s, end, dict);
+                cur.remove(cur.size()-1);
+            }
+        }
+    }
+code2
+    public List<String> wordBreak(String s, List<String> wordDict) {
+        int len = s.length();
+        Set<String> dict = new HashSet<>(wordDict);
+        List<String>[] dp = new List[len+1];
+        dp[0] = Arrays.asList("");
+        for(int i=1; i<len+1; i++) {
+            dp[i] = new LinkedList<>();
+            for(int j=i-1; j>=0; j--)
+                if(dict.contains(s.substring(j, i)) && dp[j].isEmpty() == false)
+                    for(String str: dp[j]) {
+                        String str1 = str;
+                        if(!str1.equals("")) str1 += " ";
+                        str1 += s.substring(j, i);
+                        dp[i].add(str1);
+                    }
+        }
+        return dp[len];
+    }
+code3
+    public List<String> wordBreak(String s, List<String> wordDict) {
+        Set<String> dict = new HashSet<>(wordDict);
+        return wordBreak(s, dict, new HashMap<>());
+    }
+    private List<String> wordBreak(String s, Set<String> dict, Map<String, List<String>> map) {
+        if(map.containsKey(s))
+            return map.get(s);
+        List<String> res = new LinkedList<>();
+        for(int i=1; i<=s.length(); i++) {
+            String pre = s.substring(0, i), suf = s.substring(i);
+            if(dict.contains(pre)) {
+                if(suf.isEmpty())		// watch out!
+                    res.add(pre);
+                else
+                    for(String str: wordBreak(suf, dict, map))
+                        res.add(pre + " " + str);
+            }
+        }
+        map.put(s, res);
+        return res;
     }
