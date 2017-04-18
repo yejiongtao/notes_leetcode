@@ -1,0 +1,135 @@
+141. tortoise and hare algorithm
+	prove that fast will meet slow if there's a loop
+		if there's a loop, fast will be to the left of slow at some time
+		and there must be some time when fast.next==slow
+			so, fast.next.next == slow.next, meet!
+code
+    public boolean hasCycle(ListNode head) {
+        ListNode fast = head, slow = head;
+        while(fast != null && fast.next != null) {
+            fast = fast.next.next;		// move first, then check
+            slow = slow.next;
+            if(fast == slow) return true;
+        }
+        return false;
+    }
+
+142. general idea
+	assume that after slow moving k steps, it meets with fast at M
+		then the length of the cycle is k
+		and from head to M is k
+	so put one pointer at head, another pointer at M, moves them one step a time
+		they will meet at the beginning of the cycle!
+code
+    public ListNode detectCycle(ListNode head) {
+        ListNode fast = head, slow = head;
+        while(fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+            if(fast == slow) {
+                ListNode tmp = head;
+                while(true) {
+                    if(tmp == slow) return tmp;
+                    tmp = tmp.next;
+                    slow = slow.next;
+                }
+            }
+        }
+        return null;
+    }
+
+143. general idea
+	1. find the middle
+	2. reverse the second part
+	3. insert the elements of the second part into the first part
+code
+    public void reorderList(ListNode head) {
+        if(head == null || head.next == null || head.next.next == null) return;	// to avoid some tricky corner cases
+        ListNode fast = head, slow = head;
+        while(fast.next != null && fast.next.next != null) {	// after this, fast points to last or last but two
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        if(fast.next != null) fast = fast.next;			// fast points to last one
+
+        while(slow.next != fast) {				// reverse the second part
+            ListNode tmp = slow.next;
+            slow.next = tmp.next;
+            tmp.next = fast.next;
+            fast.next = tmp;
+        }
+        
+        ListNode p1 = head, p2 = slow.next;
+        slow.next = null;					// seperate the two parts to avoid circle
+        while(p2 != null) {		// use p2! cuz length of the second part <= length of the first part
+            ListNode tmp = p2.next;
+            p2.next = p1.next;
+            p1.next = p2;
+            p2 = tmp;
+            p1 = p1.next.next;
+        }
+    }
+
+144. inorder is 94
+code
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> res = new LinkedList<>();
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root;
+        while(cur != null || !stack.isEmpty())
+            if(cur != null) {
+                res.add(cur.val);
+                stack.push(cur.right);
+                cur = cur.left;
+            } else
+                cur = stack.pop();
+        return res;
+    }
+
+145. solutions
+	solution1
+		slightly alter preorder to be root-right-left
+		reverse the result
+	solution2
+		some argue that solution1 is not strictly postorder
+		the tricky point of postorder is that you have to determine whether a node's children have already traversed
+code1
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new LinkedList<>();
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root;
+        while(cur != null || !stack.isEmpty())
+            if(cur != null) {
+                res.add(cur.val);
+                stack.push(cur.left);
+                cur = cur.right;
+            } else
+                cur = stack.pop();
+        Collections.reverse(res);
+        return res;
+    }
+code2
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new LinkedList<>();
+        Stack<TreeNode> stack = new Stack<>();
+        TreeNode cur = root, pre = null;		// pre is the last one popped
+        boolean preSet = false;				// a flag to determine whether pre is valid
+							// cuz a popped node can be null, and pre is initially null
+        while(cur != null || !stack.isEmpty())
+            if(cur != null) {
+                stack.push(cur);
+                stack.push(cur.right);
+                cur = cur.left;
+            } else {
+                cur = stack.pop();
+                if(cur != null && preSet && cur.right == pre) {
+                    res.add(cur.val);
+                    pre = cur;
+                    cur = null;
+                } else {
+                    pre = cur;
+                }
+                preSet = true;
+            }
+        return res;
+    }

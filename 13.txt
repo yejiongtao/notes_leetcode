@@ -223,7 +223,7 @@ code2, every one appears 5 times except for 1 element, which appears once
 	a way to optimized space to be O(1):
 		1. iterative the original list and duplicate each node. 
 			The duplicate of each node follows its original immediately
-		2. iterative the list and create the randome pointers for the duplicates
+		2. iterate the list and create the randome pointers for the duplicates
 		3. restore the original list and extract the duplicated nodes
 code1
     public RandomListNode copyRandomList(RandomListNode head) {
@@ -282,7 +282,7 @@ code2
             for(int j=i-1; j>=0; j--)
                 if(dict.contains(s.substring(j, i)) && dp[j]) {
                     dp[i] = true;
-                    break;
+                    break;			// BREAK!!
                 }
         return dp[len];
     }
@@ -294,6 +294,8 @@ code2
 		DP is still too slow for some cases
 		e.g. "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 			["a","aa","aaa","aaaa","aaaaa","aaaaaa","aaaaaaa","aaaaaaaa","aaaaaaaaa","aaaaaaaaaa"]
+		the reason 139 can use this method without TLE is that
+			it's not looking for ALL possible breaks
 	solution3
 		use a HashMap to store some intermediate results for speeding up
 code1
