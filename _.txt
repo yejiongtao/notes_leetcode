@@ -1,0 +1,26 @@
+musts
+http://steve-yegge.blogspot.hk/2008/03/get-that-job-at-google.html
+	Algorithm complexity
+	sorting
+		know about at least one O(nlogn) algo, (e.g. merge sort, quick sort)
+		merge sort is useful when quicksort is not possible
+	hashtables
+		be able to implement one uising only arrays
+	trees
+		binary trees, n-ary trees, trie-trees
+		familiar with at least one balanced binary tree
+			red/black tree, splay tree, AVL tree
+		BFS, DFS, inorder, preorder, postorder
+	graphs
+		3 ways to represent graphs (objects and points, matrix, adjacency lists)
+		BFS, DFS, their time complexity, tradeoffs
+		fancier algorithms like Dijkstra, A*
+		think about graph first whenever someone gives you a question!!!
+	other data structures
+		NP-complete, such as traveling salesman and the knapsack problem
+		just study a data structure book and remember as much as you can
+	math
+		distrete math, such as counting problems, probability problems
+	OS
+		Concurrent Programming in Java
+	

@@ -1,0 +1,41 @@
+151. general idea
+	the point of this question is to do it in place, using c-style pointers
+		clean up extra spaces
+		reverse the whole string
+		reverse each word
+code
+    public String reverseWords(String s) {
+        char[] c = s.toCharArray();
+        int len = cleanUpSpace(c);
+        reverse(c, 0, len-1);
+        reverseWord(c, len-1);
+        return String.valueOf(c, 0, len);		// valueOf(String, int offset, int length)
+    }
+    private int cleanUpSpace(char[] c) {
+        int l=0, r=0, len = c.length;
+        while(r < len) {
+            while(r < len && c[r] == ' ') r++;
+            while(r < len && c[r] != ' ') c[l++] = c[r++];
+            while(r < len && c[r] == ' ') r++;		// clean spaces again, so that we can use r<len below
+            if(r < len) c[l++] = ' ';			// add one space if it's not the end
+        }
+        return l;
+    }
+    private void reverse(char[] c, int l, int r) {
+        while(l < r) {
+            char tmp = c[l];
+            c[l] = c[r];
+            c[r] = tmp;
+            l++;
+            r--;
+        }
+    }
+    private void reverseWord(char[] c, int r) {
+        int l = 0;
+        while(l <= r) {
+            int tmp = l;
+            while(l <= r && c[l] != ' ') l++;
+            reverse(c, tmp, l-1);
+            l++;					// skip that one space
+        }
+    }

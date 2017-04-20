@@ -1,8 +1,7 @@
 141. tortoise and hare algorithm
 	prove that fast will meet slow if there's a loop
 		if there's a loop, fast will be to the left of slow at some time
-		and there must be some time when fast.next==slow
-			so, fast.next.next == slow.next, meet!
+		then every round the distance of them reduces by 1
 code
     public boolean hasCycle(ListNode head) {
         ListNode fast = head, slow = head;
@@ -132,4 +131,164 @@ code2
                 preSet = true;
             }
         return res;
+    }
+
+146. general idea
+	use a HashMap and a doubly linked list
+		use a doubly linked list cuz removing a element takes O(1)
+		the last valid element of the list is the most recently used one
+code
+public class LRUCache {
+    private Map<Integer, ListNode> map = new HashMap<>();
+    private ListNode head = new ListNode(), tail = new ListNode();	// dummy nodes in both end!!
+    private int mSize;
+    
+    public LRUCache(int capacity) {
+        mSize = capacity;
+        head.next = tail;			// link them
+        tail.prev = head;
+    }
+    public int get(int key) {
+        if(!map.containsKey(key))
+            return -1;
+        int val = map.get(key).val;
+        remove(map.get(key));			// remove the node and create a new one at the end of the list
+        map.put(key, add(key, val));
+        return val;
+    }
+    public void put(int key, int value) {
+        if(map.containsKey(key)) {
+            remove(map.get(key));
+        } else {
+            if(map.size() == mSize) {
+                map.remove(head.next.key);
+                removeHead();
+            }
+        }
+        map.put(key, add(key, value));
+    }
+    private void remove(ListNode node) {
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
+    private void removeHead() {
+        head.next = head.next.next;
+        head.next.prev = head;
+    }
+    private ListNode add(int key, int val) {		// add to the end of the list
+        ListNode node = new ListNode(key, val);
+        node.prev = tail.prev;				// interesting.
+        tail.prev = node;
+        node.prev.next = node;				// don't forget to update the 'next' of the adjacents
+        node.next = tail;
+        return node;
+    }
+}
+class ListNode {
+    int key, val;
+    ListNode next, prev;
+    ListNode() {}
+    ListNode(int key, int val) {
+        this.key = key;
+        this.val = val;
+    }
+}
+
+147. general idea
+	consider there's a new list for the sorted elements
+code 
+    public ListNode insertionSortList(ListNode head) {
+        ListNode dummy = new ListNode(0), cur = head;		// dummy is the head of the sorted list
+        while(cur != null) {
+            ListNode pre = dummy, tmp = cur.next;		// save cur.next beforehand
+            while(pre.next != null && !(pre.next.val > cur.val))	// cur should be interted after pre
+                pre = pre.next;
+            cur.next = pre.next;
+            pre.next = cur;
+            cur = tmp;
+        }
+        return dummy.next;
+    }
+
+148. merge sort
+code
+    public ListNode sortList(ListNode head) {
+        if(head == null || head.next == null) return head;
+        ListNode fast = head, slow = head;
+        while(fast.next != null && fast.next.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+        }		// a key is to make sure after the loop you have a pointer points to the head of the second part
+        ListNode tmp = slow.next;			// so that you can seperate the two parts
+        slow.next = null;				// important! seperate the two parts
+        ListNode p1 = sortList(head), p2 = sortList(tmp);
+        ListNode dummy = new ListNode(0), tail = dummy;
+        while(p2 != null && p1 != null) {
+            if(p1.val < p2.val) {
+                tail.next = p1;
+                p1 = p1.next;
+            } else {
+                tail.next = p2;
+                p2 = p2.next;
+            }
+            tail = tail.next;
+        }
+        tail.next = p1 != null ? p1 : p2;
+        return dummy.next;
+    }
+
+149. code
+    public int maxPoints(Point[] points) {
+        int max = 0;
+        for(int i=0; i<points.length; i++) {
+            Map<String, Integer> map = new HashMap<>();		// use a string to be key, instead of a double slope
+            int samePoint = 1;
+            for(int j=i+1; j<points.length; j++)
+                if(points[i].x == points[j].x && points[i].y == points[j].y)
+                    samePoint++;
+                else {
+                    int dy = points[i].y - points[j].y, dx = points[i].x - points[j].x;
+                    if(dy < 0) {		// watch out!
+                        dy = -dy;
+                        dx = -dx;
+                    }
+                    int gcd = gcd(dx, dy);
+                    dx /= gcd;
+                    dy /= gcd;			// if dy==0, dy will be 1; if dx==0, dx will be 1
+                    String key = dx + " " + dy;
+                    map.put(key, map.containsKey(key) ? map.get(key) + 1 : 1);
+                }
+            int localMax = 0;
+            for(int val: map.values())
+                localMax = Math.max(localMax, val);
+            localMax += samePoint;
+            max = Math.max(max, localMax);
+        }
+        return max;
+    }
+    private int gcd(int a, int b) {	// greatest common divisor, Euclid's Algorithm, might be O(lnb)
+        if(b == 0) return a;
+        return gcd(b, a % b);
+    }
+
+150. reverse polish notation, (postfix notation)
+	1 2 + means 1+2
+code
+    public int evalRPN(String[] tokens) {
+        Stack<Integer> stack = new Stack<>();
+        Set<String> operands = new HashSet<>(Arrays.asList("+", "-", "*", "/"));
+        for(String s: tokens)
+            if(!operands.contains(s))
+                stack.push(Integer.valueOf(s));
+            else {
+                int b = stack.pop(), a = stack.pop(), res = 0;
+                switch(s) {
+                    case "+": res = a+b; break;
+                    case "-": res = a-b; break;
+                    case "*": res = a*b; break;
+                    case "/": res = a/b; break;
+                }
+                stack.push(res);
+            }
+        return stack.pop();
     }

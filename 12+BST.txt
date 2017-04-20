@@ -67,7 +67,7 @@ code
         return true;
     }
 
-126. general idea
+126. general idea, BFS
 	it's like level-order traversal, with the requirement to save the legal paths
 	similar to 127
 code
